@@ -6,7 +6,7 @@ using namespace std;
 
 class CommandIdentifier {
 private:
-    map<string,OperationInfo> operationsTable;
+    map<string,OperationInfo> opTable;
     string currentCommand;
 public:
     CommandIdentifier();//initialize op table
