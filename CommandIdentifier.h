@@ -3,14 +3,12 @@
 #include "OperationInfo.h"
 
 using namespace std;
-
 class CommandIdentifier {
 private:
-    map<string,OperationInfo> opTable;
-    string currentCommand;
+    static map<string,OperationInfo> opTable;
 public:
     CommandIdentifier();//initialize op table
-    bool isInTable(string command);
-    OperationInfo getInfo(string command);
+    static bool isInTable(string command);
+    static OperationInfo getInfo(string command);
 };
 
