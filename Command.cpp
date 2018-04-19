@@ -11,6 +11,10 @@ Command::getNeededSpace(){
         //TODO
         // INCORRECT CAN'T DISTINGUISH BETWEEN FORMAT 3, 4
 //        return CommandIdentifier::getInfo(mnemonic).format;
+         /* possible solution
+          * add a boolean flag ini opertaionInfo
+          * to know if it's format 3 or4
+          */
     } else {
         if(mnemonic.compare("WORD") == 0) {
                     return operands.size()*3;
