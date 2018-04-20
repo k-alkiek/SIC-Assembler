@@ -11,8 +11,8 @@ public:
 
 private:
     char validateLineRegex(string line);
-    bool validateLineSyntax(vector<string> line);
-    vector<string> extractData(string line);
+    bool validateLineSyntax(Command line);
+    Command extractData(string line);
 };
 
 

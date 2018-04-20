@@ -1,8 +1,10 @@
 #include "CommandParser.h"
+#include "CommandIdentifier.h"
 #include <regex>
 
 vector<Command> CommandParser::parseFile(vector<string> lines){
 
+    CommandIdentifier commandIdentifier;
     vector<Command> commands = {};
     for(int i = 0 ; i < lines.size(); i++)
     {
@@ -51,10 +53,95 @@ char CommandParser::validateLineRegex(string line){
     return 'n';
 }
 
-bool CommandParser::validateLineSyntax(vector<string> line){
-
+bool CommandParser::validateLineSyntax(Command line){
+    CommandIdentifier commandIdentifier;
+    if(line.mnemonic.length() == 0){
+        return false;
+    }
+    if(line.operands.size() != commandIdentifier.getInfo(line.mnemonic).numberOfOperands){
+        return false;
+    }
+    //kamel anta ba2a
 }
 
-vector<string> CommandParser::extractData(string line){
-
+Command CommandParser::extractData(string line) {
+    CommandIdentifier commandIdentifier;
+    Command commandData; // the vector that will e returned
+    std::vector<std::string> splitedCommand; // vector helps making processing
+    istringstream splitedData(line);
+    do {
+        string data;
+        splitedData >> data;
+        splitedCommand.push_back(data);
+    } while (splitedData);
+    bool isOperation = commandIdentifier.isInTable(splitedCommand[0]);
+    if (isOperation) {
+        commandData.label = "";
+        commandData.mnemonic = splitedCommand[0];
+        if (commandIdentifier.getInfo(splitedCommand[0]).hasOperand) {
+            if(commandIdentifier.getInfo(splitedCommand[0]).numberOfOperands == 1){
+                commandData.operands.push_back(splitedCommand[1]);
+            }
+            else{
+                std::istringstream ss(splitedCommand[1]);
+                std::string operand;
+                while(std::getline(ss, operand, ',')) {
+                    commandData.operands.push_back(operand);
+                }
+            }
+        }
+        return commandData;
+    }
+    commandData.label = splitedCommand[0];
+    isOperation = commandIdentifier.isInTable(splitedCommand[1]);
+    if (isOperation) {
+        commandData.mnemonic = splitedCommand[1];
+        if (commandIdentifier.getInfo(splitedCommand[1]).hasOperand) {
+            if(commandIdentifier.getInfo(splitedCommand[1]).numberOfOperands == 1){
+                commandData.operands.push_back(splitedCommand[2]);
+            }
+            else{
+                std::istringstream ss(splitedCommand[2]);
+                std::string operand;
+                while(std::getline(ss, operand, ',')) {
+                    commandData.operands.push_back(operand);
+                }
+            }
+        }
+        return commandData;
+    }
+    else{
+        commandData.mnemonic = "";
+        return commandData;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
