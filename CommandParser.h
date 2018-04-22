@@ -13,7 +13,12 @@ private:
     char validateLineRegex(string line);
     bool validateLineSyntax(Command line);
     Command extractData(string line);
-};
 
+    bool validateWord(Command command);
+
+    bool validateRes(Command command);
+
+    bool validateByte(Command command);
+};
 
 

@@ -1,6 +1,8 @@
 #include "CommandParser.h"
 #include "CommandIdentifier.h"
 #include <regex>
+#include <algorithm>
+#include <string>
 
 vector<Command> CommandParser::parseFile(vector<string> lines){
 
@@ -9,16 +11,12 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
-        if(c == 'c')
+        if(c == 'n')
         {
-            // comment
-        }
-        else if(c == 'n')
-        {
-            // error
+
         }
 
-        vector<string> line = extractData(lines[1]);
+        Command line = extractData(lines[i]);
         bool cond = validateLineSyntax(line);
 
         if(cond)
@@ -41,7 +39,7 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
 char CommandParser::validateLineRegex(string line){
 
     regex c("\\s*\\.{1}[^\\n]*\\s*\\n");
-    regex r("[!@#$%^&*()|\\s;:\"\']*[A-Za-z]{1,10}[!@#$%^&*()|\\s;:\"\'.]+[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"\'.]+[\\d#@+\\w,]+\\s*\\n");
+    regex r("[!@#$%^&*()|\\s;:\"\']*[A-Za-z]{1,10}[!@#$%^&*()|\\s;:\"\'.]+\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"\'.]+[\\d#@+\\w,]+\\s*[!@#$%^&*()|\\s;:\"\'\\.A-Za-z0-9]*");
     smatch m;
 
     regex_match(line,m,c);
@@ -61,7 +59,16 @@ bool CommandParser::validateLineSyntax(Command line){
     if(line.operands.size() != commandIdentifier.getInfo(line.mnemonic).numberOfOperands){
         return false;
     }
-    //kamel anta ba2a
+
+    string mnemonic = line.mnemonic;
+    std::transform(mnemonic.begin(), mnemonic.end(), mnemonic.begin(), ::toupper);
+    if(mnemonic == "WORD")
+        return validateWord(line);
+    else if(mnemonic == "RESW" || mnemonic == "RESB" || mnemonic == "START")
+        return validateRes(line);
+    else if(mnemonic == "BYTE")
+        return validateByte(line);
+
 }
 
 Command CommandParser::extractData(string line) {
@@ -116,32 +123,74 @@ Command CommandParser::extractData(string line) {
     }
 }
 
+bool CommandParser::validateWord(Command command) {
 
+    string operand = command.operands[0];
 
+    if(operand.length() >  4)
+    {
+        if(operand.at(0) != '-')
+            return false;
+    }
 
+    int i = 0;
+    if(operand.at(0) != '-')
+        i=1;
 
+    for(i ; i < operand.length() ; i++)
+        if(!isdigit(operand.at(i)))
+            return false;
 
+    return true;
+}
 
+bool CommandParser::validateRes(Command command) {
 
+    string operand = command.operands[0];
 
+    if(operand.length() > 4)
+        return false;
 
+    for(int i = 0 ; i < operand.length() ; i++)
+        if(!isdigit(operand.at(i)))
+            return false;
 
+    return true;
+}
 
+bool CommandParser::validateByte(Command command) {
 
+    string operand = command.operands[0];
 
+    if(operand.at(0) != 'X' || operand.at(0) != 'C')
+        return false;
+    if(operand.at(1) != '\'' && operand.back() != '\'')
+        return false;
 
+    char mode;
+    if(operand.at(0) == 'X')
+    {
+        if(operand.length() > 17)
+            return false;
+        mode = 'x';
+    }
+    else if(operand.at(0) == 'C')
+    {
+        if(operand.length() > 18)
+            return false;
+        mode = 'c';
+    }
 
+    if(mode == 'c')
+        return true;
 
+    vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
+    for(int i = 2 ; i < operand.length()-3 ; i++)
+        if(!isdigit(operand.at(i)) || !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
+            return false;
 
-
-
-
-
-
-
-
-
-
+    return true;
+}
 
 
 
