@@ -5,10 +5,10 @@
 using namespace std;
 class CommandIdentifier {
 private:
-    static map<string,OperationInfo> opTable;
+    map<string,OperationInfo> opTable;
 public:
     CommandIdentifier();//initialize op table
-    static bool isInTable(string command);
-    static OperationInfo getInfo(string command);
+    bool isInTable(string command);
+    OperationInfo getInfo(string command);
 };
 
