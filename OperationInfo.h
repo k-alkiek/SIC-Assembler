@@ -6,6 +6,7 @@ public:
     string code;
     bool hasOperand;
     int numberOfOperands;
-    OperationInfo(string code, bool hasOperand, int numberOfOperands);
+    int format;
+    OperationInfo(string code, bool hasOperand, int numberOfOperands, int format);
 };
 
