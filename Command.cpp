@@ -5,9 +5,11 @@
 #include "Command.h"
 #include "CommandIdentifier.h"
 
-Command::getNeededSpace(){
+Command::getNeededSpace() {
 
-    if (CommandIdentifier::isInTable(mnemonic)) {
+    if (mnemonic.find('+') != std::string::npos) {
+        return 4;
+    } else if (CommandIdentifier::isInTable(mnemonic)) {
         //TODO
         // INCORRECT CAN'T DISTINGUISH BETWEEN FORMAT 3, 4
 //        return CommandIdentifier::getInfo(mnemonic).format;
@@ -15,6 +17,7 @@ Command::getNeededSpace(){
           * add a boolean flag ini opertaionInfo
           * to know if it's format 3 or4
           */
+        return CommandIdentifier::getInfo(mnemonic).format;
     } else {
         if(mnemonic.compare("WORD") == 0) {
                     return operands.size()*3;
@@ -26,6 +29,10 @@ Command::getNeededSpace(){
                 return str.size() - 3;
             }
         } else if(mnemonic.compare("RESW") == 0) {
+            return stoi(operands.front())*3;
+        }else if(mnemonic.compare("RESW") == 0) {
+            return stoi(operands.front())*3;
+        }else if(mnemonic.compare("RESW") == 0) {
             return stoi(operands.front())*3;
         } else if(mnemonic.compare("RESB") == 0) {
             return stoi(operands.front());

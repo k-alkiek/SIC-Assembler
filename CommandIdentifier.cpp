@@ -63,6 +63,8 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair <string, OperationInfo> ("TIXR", OperationInfo("B8",true,1)));
     opTable.insert(pair <string, OperationInfo> ("WD", OperationInfo("DC",true,1)));
 
+    opTable.insert(pair <string, string> ("RESW", NULL));
+
 }
 
 bool CommandIdentifier::isInTable(string command) {
