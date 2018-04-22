@@ -133,22 +133,23 @@ Command CommandParser::extractData(string line) {
 
 bool CommandParser::validateWord(Command command) {
 
-    string operand = command.operands[0];
-
-    if(operand.length() >  4)
+    for(int i = 0 ; i < command.operands.size() ; i++)
     {
+        string operand = command.operands[i];
+        if(operand.length() >  4)
+        {
+            if(operand.at(0) != '-')
+                return false;
+        }
+
+        int i = 0;
         if(operand.at(0) != '-')
-            return false;
+            i=1;
+
+        for(i ; i < operand.length() ; i++)
+            if(!isdigit(operand.at(i)))
+                return false;
     }
-
-    int i = 0;
-    if(operand.at(0) != '-')
-        i=1;
-
-    for(i ; i < operand.length() ; i++)
-        if(!isdigit(operand.at(i)))
-            return false;
-
     return true;
 }
 
