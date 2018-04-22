@@ -81,12 +81,16 @@ Command CommandParser::extractData(string line) {
         splitedData >> data;
         splitedCommand.push_back(data);
     } while (splitedData);
-    bool isOperation = commandIdentifier.isInTable(splitedCommand[0]);
+    std::string canBeOperation = splitedCommand[0];
+    if(canBeOperation[0] == '+') {
+        canBeOperation = canBeOperation.substr(1,canBeOperation.length()-1);
+    }
+    bool isOperation = commandIdentifier.isInTable(canBeOperation);
     if (isOperation) {
         commandData.label = "";
         commandData.mnemonic = splitedCommand[0];
-        if (commandIdentifier.getInfo(splitedCommand[0]).hasOperand) {
-            if(commandIdentifier.getInfo(splitedCommand[0]).numberOfOperands == 1){
+        if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
+            if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
                 commandData.operands.push_back(splitedCommand[1]);
             }
             else{
@@ -100,11 +104,15 @@ Command CommandParser::extractData(string line) {
         return commandData;
     }
     commandData.label = splitedCommand[0];
+    canBeOperation = splitedCommand[1];
+    if(canBeOperation[1] == '+') {
+        canBeOperation = canBeOperation.substr(1,canBeOperation.length()-1);
+    }
     isOperation = commandIdentifier.isInTable(splitedCommand[1]);
     if (isOperation) {
         commandData.mnemonic = splitedCommand[1];
-        if (commandIdentifier.getInfo(splitedCommand[1]).hasOperand) {
-            if(commandIdentifier.getInfo(splitedCommand[1]).numberOfOperands == 1){
+        if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
+            if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
                 commandData.operands.push_back(splitedCommand[2]);
             }
             else{
