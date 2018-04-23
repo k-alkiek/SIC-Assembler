@@ -7,7 +7,9 @@ class CommandParser {
 
 public:
 
+    vector<int> wrongCommands;
     vector<Command> parseFile(vector<string> lines);
+    vector<int> getWrongCommands();
 
 private:
     char validateLineRegex(string line);

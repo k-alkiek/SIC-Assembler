@@ -3,33 +3,28 @@
 #include <regex>
 #include <algorithm>
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
 
 vector<Command> CommandParser::parseFile(vector<string> lines){
 
     CommandIdentifier commandIdentifier;
     vector<Command> commands = {};
+    wrongCommands = {};
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
         if(c == 'n')
-        {
-
-        }
+            wrongCommands.push_back(i);
 
         Command line = extractData(lines[i]);
         bool cond = validateLineSyntax(line);
 
         if(cond)
-        {
-            /*
-            * determine command instance
-            * assemble data to vector command
-            */
-        }
+            commands.push_back(line);
+
         else
-        {
-            // error
-        }
+            wrongCommands.push_back(i);
 
     }
 
@@ -201,5 +196,8 @@ bool CommandParser::validateByte(Command command) {
     return true;
 }
 
+vector<int> CommandParser::getWrongCommands() {
+    return wrongCommands;
+}
 
 
