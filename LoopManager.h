@@ -17,5 +17,5 @@ private:
     string getCurrentLocation();
     int getOperandValue(string operand);
 public:
-    PrimaryData loop(string file);
+    PrimaryData loop(vector<Command> commands);
 };

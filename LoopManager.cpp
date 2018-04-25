@@ -1,9 +1,8 @@
 #include "LoopManager.h"
 
-PrimaryData LoopManager::loop(string file) {
+PrimaryData LoopManager::loop(vector<Command> commands) {
     string startingAddress;
     int programLength;
-    vector<Command> commands = parser.parseFile(LoopManager::reader.readFile(file));
     vector<Command>::iterator it;
     Command command;
     it = commands.begin();
@@ -11,29 +10,29 @@ PrimaryData LoopManager::loop(string file) {
     vector<string> literalsBuffer;
 
     if(command.mnemonic != "START") {
-        //error
+        //TODO error
     }
     startingAddress = command.operands.at(0);
     locationCounter = stoi(startingAddress);
     ++it;
     while (it != commands.end()) {
         command = *it;
-        if(command.mnemonic == "END"){
+        if(command.mnemonic.compare("END") == 0){
             dumpLiterals(literalsBuffer);
             break;
         }
-        else if (command.mnemonic == "ORG") {
+        else if (command.mnemonic.compare("ORG") == 0) {
             locationCounter = getOperandValue(command.operands.front());
         }
-        else if (command.mnemonic == "LTORG") {
+        else if (command.mnemonic.compare("LTORG") == 0){
             dumpLiterals(literalsBuffer);
         }
 
         if (command.operands.front()[0] == '=') {     //literal operand
             literalsBuffer.push_back(command.operands.front());
         }
-        if(command.label != ""){
-            if (command.mnemonic == "EQU") {
+        if(command.label.compare("") != 0){
+            if (command.mnemonic.compare("EQU") == 0) {
                 symbolTable[command.label] = getOperandValue(command.operands.front());
             }
             else {
