@@ -84,6 +84,7 @@ string LoopManager::getCurrentLocation() {
     while (temp.length() < 4){
         temp = "0" + temp;
     }
+    return temp;
 }
 
 int LoopManager::getOperandValue(string operand) {
