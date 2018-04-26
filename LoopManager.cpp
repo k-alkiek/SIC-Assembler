@@ -42,7 +42,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
                 string temp = getCurrentLocation();
                 string label = command.label;
                 std::pair<std::string,std::string> trying = std::make_pair(command.label,temp);
-                symbolTable.insert(trying);
+                 symbolTable.insert(trying);
             }
         }
         locationCounter += command.getNeededSpace();
