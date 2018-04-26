@@ -137,12 +137,12 @@ bool CommandParser::validateWord(Command command) {
                 return false;
         }
 
-        int i = 0;
+        int j = 0;
         if(operand.at(0) != '-')
-            i=1;
+            j=1;
 
-        for(i ; i < operand.length() ; i++)
-            if(!isdigit(operand.at(i)))
+        for(j ; j < operand.length() ; j++)
+            if(!isdigit(operand.at(j)))
                 return false;
     }
     return true;

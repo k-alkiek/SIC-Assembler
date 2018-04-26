@@ -62,15 +62,15 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair <string, OperationInfo> ("TIX", OperationInfo("2C",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("TIXR", OperationInfo("B8",true,1,2)));
     opTable.insert(pair <string, OperationInfo> ("WD", OperationInfo("DC",true,1,3)));
-
-    opTable.insert(pair <string, string> ("RESW", NULL));
-    opTable.insert(pair <string, string> ("RESB", NULL));
-    opTable.insert(pair <string, string> ("WORD", NULL));
-    opTable.insert(pair <string, string> ("BYTE", NULL));
-    opTable.insert(pair <string, string> ("END", NULL));
-    opTable.insert(pair <string, string> ("START", NULL));
-    opTable.insert(pair <string, string> ("EQU", NULL));
-    opTable.insert(pair <string, string> ("ORG", NULL));
+//TODO someone see if this is right
+    opTable.insert(pair <string, OperationInfo> ("RESW",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("RESB",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("WORD",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("BYTE",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("END",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("START",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("EQU",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("ORG",OperationInfo("",true,1,3)));
 
 }
 

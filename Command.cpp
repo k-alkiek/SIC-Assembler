@@ -5,7 +5,7 @@
 #include "Command.h"
 #include "CommandIdentifier.h"
 
-Command::getNeededSpace() {
+int Command::getNeededSpace() {
     CommandIdentifier opTable;
     if (mnemonic.find('+') != std::string::npos) {
         return 4;

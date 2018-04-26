@@ -7,6 +7,6 @@ int main() {
     CommandParser commandParser;
     LoopManager manager;
     PrimaryData data;
-    vector<Command> commands= commandParser.parseFile(reader.readFile("test.txt"));
+    vector<Command> commands= commandParser.parseFile(reader.readFile("/home/mostafa/test.txt"));
     data = manager.loop(commands);
 }
