@@ -1,3 +1,9 @@
+
+#ifndef COMMAND_H
+#define COMMAND_H
+
+
+
 #include <iostream>
 #include <vector>
 
@@ -11,3 +17,6 @@ public:
     int getNeededSpace();
     string address;
 };
+
+
+#endif

@@ -1,7 +1,12 @@
+
+#ifndef PRIMARYDATA_H
+#define PRIMARYDATA_H
+
 #include <iostream>
 #include <map>
 #include "Command.h"
 #include "labelInfo.h"
+
 
 using namespace std;
 class PrimaryData {
@@ -11,3 +16,5 @@ public:
     int programLength;
     vector<Command> commands;
 };
+
+#endif

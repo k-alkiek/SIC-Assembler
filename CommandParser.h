@@ -1,3 +1,7 @@
+
+#ifndef COMMANDPARSER_H
+#define COMMANDPARSER_H
+
 #include <iostream>
 #include "Command.h"
 
@@ -21,6 +25,9 @@ private:
     bool validateRes(Command command);
 
     bool validateByte(Command command);
+
+    bool validateStart(Command command);
 };
 
 
+#endif
