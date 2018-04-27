@@ -21,6 +21,8 @@ private:
     bool validateRes(Command command);
 
     bool validateByte(Command command);
+
+    bool validateStart(Command command);
 };
 
 
