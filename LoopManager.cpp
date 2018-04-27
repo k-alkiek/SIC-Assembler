@@ -2,7 +2,7 @@
 
 PrimaryData LoopManager::loop(vector<Command> commands) {
     string startingAddress;
-    int programLength;
+    programLength = 0;
     string nameOfProgram;
     vector<Command>::iterator it;
     vector<Command> finalCommands;
@@ -60,9 +60,9 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
             }
         }
         locationCounter += command.getNeededSpace();
+        programLength += command.getNeededSpace();
         it++;
     }
-    programLength = locationCounter - hexToDecimal(startingAddress);
     PrimaryData data;
     data.symbolTable = symbolTable;
     data.programLength = programLength;
@@ -93,6 +93,7 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
         }
 
         locationCounter += space;
+        programLength += space;
     }
     literalsBuffer.clear();
 }

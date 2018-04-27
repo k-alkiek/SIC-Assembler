@@ -9,6 +9,7 @@ class LoopManager {
 private:
     map<string,labelInfo> symbolTable;
     int locationCounter;
+    int programLength;
 
     void dumpLiterals(vector<string> literalsBuffer);
     string getCurrentLocation();
