@@ -5,6 +5,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     int programLength;
     string nameOfProgram;
     vector<Command>::iterator it;
+    vector<Command> finalCommands;
     Command command;
     it = commands.begin();
     command = *it;
@@ -15,16 +16,20 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     }
     startingAddress = command.operands.at(0);
     nameOfProgram = command.label;
+    command.address = startingAddress;
     locationCounter = stoi(startingAddress);
+    finalCommands.push_back(command);
     ++it;
     while (it != commands.end()) {
         command = *it;
+        command.address = getCurrentLocation();
+        finalCommands.push_back(command);
         if(command.mnemonic.compare("END") == 0){
             dumpLiterals(literalsBuffer);
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
-            locationCounter = getOperandValue(command.operands.front());
+            locationCounter = stoi(getOperandValue(command.operands.front()).address);
         }
         else if (command.mnemonic.compare("LTORG") == 0){
             dumpLiterals(literalsBuffer);
@@ -45,8 +50,10 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
                     //TODO error
                 }
                 string temp = getCurrentLocation();
-                string label = command.label;
-                std::pair<std::string,std::string> trying = std::make_pair(command.label,temp);
+                labelInfo info;
+                info.address = temp;
+                info.type = "relative";
+                std::pair<std::string,labelInfo> trying = std::make_pair(command.label,info);
                  symbolTable.insert(trying);
             }
         }
@@ -58,6 +65,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     data.symbolTable = symbolTable;
     data.programLength = programLength;
     data.startingAddress = startingAddress;
+    data.commands = finalCommands;
     return data;
 }
 
@@ -65,8 +73,11 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
         literalTable.insert(make_pair(literal, getCurrentLocation()));//remember barie
-        symbolTable.insert(make_pair(literal, getCurrentLocation()));
+        labelInfo info;
+        info.address = getCurrentLocation();
+        info.type = "relative";
 
+        symbolTable.insert(make_pair(literal,info));
         string value = literal.substr(3, literal.length() - 4);
         char type = literal[1];
         int space = 0;
@@ -93,15 +104,19 @@ string LoopManager::getCurrentLocation() {
     return temp;
 }
 
-int LoopManager::getOperandValue(string operand) {
-    int value;
+labelInfo LoopManager::getOperandValue(string operand) {
+    labelInfo info;
     try {
-        value = stoi(operand);
+        int value =stoi(operand);
+        info.address = operand;
+        info.type = "Absolute";
     } catch (invalid_argument e) {
         if (LoopManager::symbolTable.find(operand) != symbolTable.end()) {
-            value = stoi(symbolTable.find(operand)->second);
+            string tmpValue = symbolTable.find(operand)->second.address;
+            info.address = tmpValue;
+            info.type = symbolTable.find(operand)->second.type;
         }
         else throw invalid_argument("Invalid value");
     }
-    return value;
+    return info;
 }

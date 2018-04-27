@@ -1,21 +1,19 @@
 #include <iostream>
 #include <map>
 #include "FileReader.h"
-#include "CommandParser.h"
 #include "PrimaryData.h"
+#include "labelInfo.h"
 
 using namespace std;
 class LoopManager {
 private:
-    FileReader reader;
-    CommandParser parser;
-    map<string,string> symbolTable;
+    map<string,labelInfo> symbolTable;
     map<string,string> literalTable;
     int locationCounter;
 
     void dumpLiterals(vector<string> literalsBuffer);
     string getCurrentLocation();
-    int getOperandValue(string operand);
+    labelInfo getOperandValue(string operand);
 public:
     PrimaryData loop(vector<Command> commands);
 };
