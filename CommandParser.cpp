@@ -14,9 +14,10 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
-        if(c == 'n')
+        if(c == 'n') {
             wrongCommands.push_back(i);
-
+            continue;
+        }
         Command line = extractData(lines[i]);
         bool cond = validateLineSyntax(line);
 

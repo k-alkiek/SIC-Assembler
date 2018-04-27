@@ -9,4 +9,5 @@ public:
     string mnemonic;
     vector<string> operands;
     int getNeededSpace();
+    string address;
 };
