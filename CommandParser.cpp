@@ -11,14 +11,19 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     CommandIdentifier commandIdentifier;
     vector<Command> commands = {};
     wrongCommands = {};
+    int commentCount = 0;
+
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
         if(c == 'n') {
-            wrongCommands.push_back(i);
+            wrongCommands.push_back(i - commentCount);
             continue;
         } else if (c == 'c')
+        {
+            commentCount++;
             continue;
+        }
 
         Command line = extractData(lines[i]);
         bool cond = validateLineSyntax(line);
@@ -36,8 +41,8 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
 
 char CommandParser::validateLineRegex(string line){
 
-    regex c("\\s*\\.{1}[^\\n]*\\s*");
-    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"'.]*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"'.]*[\\d#@+\\w=',]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
+    regex c("\\s*\\.+[^\\n]*\\s*");
+    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
     smatch m;
 
     regex_match(line,m,c);
@@ -56,20 +61,32 @@ bool CommandParser::validateLineSyntax(Command line){
     if(line.mnemonic.length() == 0){
         return false;
     }
-    if(line.operands.size() != commandIdentifier.getInfo(line.mnemonic).numberOfOperands){
-        return false;
-    }
-
     string mnemonic = line.mnemonic;
     std::transform(mnemonic.begin(), mnemonic.end(), mnemonic.begin(), ::toupper);
+
     if(mnemonic == "WORD")
+    {
+        if(line.operands.size() == 0)
+            return false;
         return validateWord(line);
-    else if(mnemonic == "RESW" || mnemonic == "RESB")
-        return validateRes(line);
-    else if(mnemonic == "BYTE")
-        return validateByte(line);
-    else if(mnemonic == "START")
-        return validateStart(line);
+    }
+    else if(mnemonic == "END")
+        if(line.operands.size() != 0 && line.operands.size() != 1)
+            return false;
+    else
+    {
+        if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
+            return false;
+        }
+        else if(mnemonic == "RESW" || mnemonic == "RESB")
+            return validateRes(line);
+        else if(mnemonic == "BYTE")
+            return validateByte(line);
+        else if(mnemonic == "START")
+            return validateStart(line);
+
+    }
+    return true;
 
 }
 
@@ -135,6 +152,7 @@ Command CommandParser::extractData(string line) {
 
 bool CommandParser::validateWord(Command command) {
 
+
     for(int i = 0 ; i < command.operands.size() ; i++)
     {
         string operand = command.operands[i];
@@ -173,7 +191,7 @@ bool CommandParser::validateByte(Command command) {
 
     string operand = command.operands[0];
 
-    if(operand.at(0) != 'X' || operand.at(0) != 'C')
+    if(operand.at(0) != 'X' && operand.at(0) != 'C')
         return false;
     if(operand.at(1) != '\'' && operand.back() != '\'')
         return false;
@@ -197,7 +215,7 @@ bool CommandParser::validateByte(Command command) {
 
     vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
     for(int i = 2 ; i < operand.length()-3 ; i++)
-        if(!isdigit(operand.at(i)) || !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
+        if(!isdigit(operand.at(i)) && !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
             return false;
 
     return true;
@@ -213,8 +231,11 @@ bool CommandParser::validateStart(Command command) {
 
     vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
     for(int i = 0 ; i < operand.length() ; i++)
-        if(!isdigit(operand.at(i)) || !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
+        if(!isdigit(operand.at(i)) && !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
+        {
+            char l = operand.at(i);
             return false;
+        }
 
     return true;
 }
