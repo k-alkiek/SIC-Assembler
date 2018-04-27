@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "Command.h"
+#include "ErrorMsg.h"
 
 using namespace std;
 
@@ -11,22 +12,22 @@ class CommandParser {
 
 public:
 
-    vector<int> wrongCommands;
+    vector<ErrorMsg> wrongCommands;
     vector<Command> parseFile(vector<string> lines);
-    vector<int> getWrongCommands();
+    vector<ErrorMsg> getWrongCommands();
 
 private:
     char validateLineRegex(string line);
-    bool validateLineSyntax(Command line);
+    string validateLineSyntax(Command line);
     Command extractData(string line);
 
-    bool validateWord(Command command);
+    string validateWord(Command command);
 
-    bool validateRes(Command command);
+    string validateRes(Command command);
 
-    bool validateByte(Command command);
+    string validateByte(Command command);
 
-    bool validateStart(Command command);
+    string validateStart(Command command);
 };
 
 
