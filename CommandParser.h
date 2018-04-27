@@ -1,6 +1,6 @@
 
-#ifndef PRIMARYDATA_H
-#define PRIMARYDATA_H
+#ifndef COMMANDPARSER_H
+#define COMMANDPARSER_H
 
 #include <iostream>
 #include "Command.h"
