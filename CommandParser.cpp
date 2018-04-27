@@ -17,7 +17,9 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
         if(c == 'n') {
             wrongCommands.push_back(i);
             continue;
-        }
+        } else if (c == 'c')
+            continue;
+
         Command line = extractData(lines[i]);
         bool cond = validateLineSyntax(line);
 
@@ -34,16 +36,18 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
 
 char CommandParser::validateLineRegex(string line){
 
-    regex c("\\s*\\.{1}[^\\n]*\\s*\\n");
-    regex r("[!@#$%^&*()|\\s;:\"\']*[A-Za-z0-9]{1,10}[!@#$%^&*()|\\s;:\"\'.]+\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"\'.]+[\\d#@+\\w,]+\\s*[!@#$%^&*()|\\s;:\"\'\\.A-Za-z0-9]*");
+    regex c("\\s*\\.{1}[^\\n]*\\s*");
+    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"'.]*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"'.]*[\\d#@+\\w=',]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
     smatch m;
 
     regex_match(line,m,c);
-    if(m.size() != 0)
-        return 'c';
+    int commentSize = m.size();
+
     regex_match(line,m,r);
     if(m.size() != 0)
         return ' ';
+    else if(commentSize != 0)
+        return 'c';
     return 'n';
 }
 
@@ -60,10 +64,12 @@ bool CommandParser::validateLineSyntax(Command line){
     std::transform(mnemonic.begin(), mnemonic.end(), mnemonic.begin(), ::toupper);
     if(mnemonic == "WORD")
         return validateWord(line);
-    else if(mnemonic == "RESW" || mnemonic == "RESB" || mnemonic == "START")
+    else if(mnemonic == "RESW" || mnemonic == "RESB")
         return validateRes(line);
     else if(mnemonic == "BYTE")
         return validateByte(line);
+    else if(mnemonic == "START")
+        return validateStart(line);
 
 }
 
@@ -201,4 +207,14 @@ vector<int> CommandParser::getWrongCommands() {
     return wrongCommands;
 }
 
+bool CommandParser::validateStart(Command command) {
 
+    string operand = command.operands[0];
+
+    vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
+    for(int i = 0 ; i < operand.length() ; i++)
+        if(!isdigit(operand.at(i)) || !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
+            return false;
+
+    return true;
+}
