@@ -36,7 +36,9 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
         }
 
         if (command.operands.front()[0] == '=') {     //literal operand
-            literalsBuffer.push_back(command.operands.front());
+            if (symbolTable.find(command.operands.front()) == symbolTable.end()) {
+                literalsBuffer.push_back(command.operands.front());
+            }
         }
         if(command.label.compare("") != 0){
             if(command.label.compare(nameOfProgram) == 0) {
