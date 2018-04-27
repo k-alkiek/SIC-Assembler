@@ -17,7 +17,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     startingAddress = command.operands.at(0);
     nameOfProgram = command.label;
     command.address = startingAddress;
-    locationCounter = stoi(startingAddress);
+    locationCounter = hexToDecimal(startingAddress);
     finalCommands.push_back(command);
     ++it;
     while (it != commands.end()) {
@@ -29,7 +29,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
-            locationCounter = stoi(getOperandValue(command.operands.front()).address);
+            locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
         }
         else if (command.mnemonic.compare("LTORG") == 0){
             dumpLiterals(literalsBuffer);
@@ -60,7 +60,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
         locationCounter += command.getNeededSpace();
         it++;
     }
-    programLength = locationCounter - stoi(startingAddress);
+    programLength = locationCounter - hexToDecimal(startingAddress);
     PrimaryData data;
     data.symbolTable = symbolTable;
     data.programLength = programLength;
@@ -96,7 +96,7 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
 }
 
 string LoopManager::getCurrentLocation() {
-    string temp = to_string(locationCounter);
+    string temp = decimalToHex(locationCounter);
     while (temp.length() < 4){
         temp = "0" + temp;
     }
@@ -118,4 +118,21 @@ labelInfo LoopManager::getOperandValue(string operand) {
         else throw invalid_argument("Invalid value");
     }
     return info;
+}
+
+int LoopManager::hexToDecimal(string hexValue) {
+    int decimalValue;
+    std::stringstream ss;
+    ss  << hexValue;
+    ss >> std::hex >> decimalValue;
+
+    return decimalValue;
+}
+
+string LoopManager::decimalToHex(int decimalValue) {
+    std::stringstream ss;
+    ss << std::hex << decimalValue;
+    std::string res ( ss.str() );
+
+    return res;
 }

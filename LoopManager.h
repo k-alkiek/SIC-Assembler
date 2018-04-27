@@ -13,6 +13,8 @@ private:
     void dumpLiterals(vector<string> literalsBuffer);
     string getCurrentLocation();
     labelInfo getOperandValue(string operand);
+    int hexToDecimal(string hexValue);
+    string decimalToHex(int decimalValue);
 public:
     PrimaryData loop(vector<Command> commands);
 };
