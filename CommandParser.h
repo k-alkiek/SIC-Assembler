@@ -1,3 +1,7 @@
+
+#ifndef PRIMARYDATA_H
+#define PRIMARYDATA_H
+
 #include <iostream>
 #include "Command.h"
 
@@ -24,3 +28,4 @@ private:
 };
 
 
+#endif
