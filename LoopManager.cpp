@@ -72,7 +72,6 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
 void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
-        literalTable.insert(make_pair(literal, getCurrentLocation()));//remember barie
         labelInfo info;
         info.address = getCurrentLocation();
         info.type = "relative";

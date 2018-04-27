@@ -8,7 +8,6 @@ using namespace std;
 class LoopManager {
 private:
     map<string,labelInfo> symbolTable;
-    map<string,string> literalTable;
     int locationCounter;
 
     void dumpLiterals(vector<string> literalsBuffer);
