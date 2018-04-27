@@ -3,6 +3,7 @@
 PrimaryData LoopManager::loop(vector<Command> commands) {
     string startingAddress;
     int programLength;
+    string nameOfProgram;
     vector<Command>::iterator it;
     Command command;
     it = commands.begin();
@@ -13,6 +14,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
         //TODO error
     }
     startingAddress = command.operands.at(0);
+    nameOfProgram = command.label;
     locationCounter = stoi(startingAddress);
     ++it;
     while (it != commands.end()) {
@@ -32,6 +34,9 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
             literalsBuffer.push_back(command.operands.front());
         }
         if(command.label.compare("") != 0){
+            if(command.label.compare(nameOfProgram) == 0) {
+                //TODO error
+            }
             if (command.mnemonic.compare("EQU") == 0) {
                 symbolTable[command.label] = getOperandValue(command.operands.front());
             }
@@ -59,7 +64,8 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
 void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
-        literalTable.insert(make_pair(literal, getCurrentLocation()));
+        literalTable.insert(make_pair(literal, getCurrentLocation()));//remember barie
+        symbolTable.insert(make_pair(literal, getCurrentLocation()));
 
         string value = literal.substr(3, literal.length() - 4);
         char type = literal[1];
@@ -97,7 +103,5 @@ int LoopManager::getOperandValue(string operand) {
         }
         else throw invalid_argument("Invalid value");
     }
-
     return value;
-
 }
