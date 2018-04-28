@@ -65,7 +65,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     }
     PrimaryData data;
     data.symbolTable = symbolTable;
-    data.programLength = programLength;
+    data.programLength = decimalToHex(programLength);
     data.startingAddress = startingAddress;
     data.commands = finalCommands;
     return data;

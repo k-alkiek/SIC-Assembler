@@ -13,7 +13,7 @@ class PrimaryData {
 public:
     string startingAddress;
     map<string,labelInfo> symbolTable;
-    int programLength;
+    string programLength;
     vector<Command> commands;
 };
 
