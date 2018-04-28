@@ -54,7 +54,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
                 string temp = getCurrentLocation();
                 labelInfo info;
                 info.address = temp;
-                info.type = "relative";
+                info.type = "Relative";
                 std::pair<std::string,labelInfo> trying = std::make_pair(command.label,info);
                  symbolTable.insert(trying);
             }
@@ -76,7 +76,7 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
         string literal = *it;
         labelInfo info;
         info.address = getCurrentLocation();
-        info.type = "relative";
+        info.type = "Relative";
 
         symbolTable.insert(make_pair(literal,info));
         string value = literal.substr(3, literal.length() - 4);
@@ -110,6 +110,9 @@ labelInfo LoopManager::getOperandValue(string operand) {
     labelInfo info;
     try {
         int value =stoi(operand);
+        while (operand.length() < 4) {
+            operand = "0" + operand;
+        }
         info.address = operand;
         info.type = "Absolute";
     } catch (invalid_argument e) {

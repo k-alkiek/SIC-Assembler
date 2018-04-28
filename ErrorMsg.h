@@ -1,3 +1,9 @@
+
+
+#ifndef ERRORMSG_H
+#define ERRORMSG_H
+
+
 #include <iostream>
 #include <vector>
 
@@ -9,3 +15,5 @@ public:
     string msg;
     void setAttrib(int index, string msg);
 };
+
+#endif
