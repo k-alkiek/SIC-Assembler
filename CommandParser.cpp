@@ -79,19 +79,19 @@ string CommandParser::validateLineSyntax(Command line){
     else if(mnemonic == "END")
         if(line.operands.size() != 0 && line.operands.size() != 1)
             return "Wrong operands number";
-    else
-    {
-        if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
-            return "Wrong operands number";
-        }
-        else if(mnemonic == "RESW" || mnemonic == "RESB")
-            return validateRes(line);
-        else if(mnemonic == "BYTE")
-            return validateByte(line);
-        else if(mnemonic == "START")
-            return validateStart(line);
+        else
+        {
+            if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
+                return "Wrong operands number";
+            }
+            else if(mnemonic == "RESW" || mnemonic == "RESB")
+                return validateRes(line);
+            else if(mnemonic == "BYTE")
+                return validateByte(line);
+            else if(mnemonic == "START")
+                return validateStart(line);
 
-    }
+        }
     return " ";
 
 }
@@ -130,10 +130,10 @@ Command CommandParser::extractData(string line) {
     }
     commandData.label = splitedCommand[0];
     canBeOperation = splitedCommand[1];
-    if(canBeOperation[1] == '+') {
+    if(canBeOperation[0] == '+') {
         canBeOperation = canBeOperation.substr(1,canBeOperation.length()-1);
     }
-    isOperation = commandIdentifier.isInTable(splitedCommand[1]);
+    isOperation = commandIdentifier.isInTable(canBeOperation);
     if (isOperation) {
         commandData.mnemonic = splitedCommand[1];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
