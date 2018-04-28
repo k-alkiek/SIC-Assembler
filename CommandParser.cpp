@@ -76,22 +76,24 @@ string CommandParser::validateLineSyntax(Command line){
             return "No operands exist";
         return validateWord(line);
     }
-    else if(mnemonic == "END")
-        if(line.operands.size() != 0 && line.operands.size() != 1)
+    else if(mnemonic == "END") {
+        if (line.operands.size() != 0 && line.operands.size() != 1)
             return "Wrong operands number";
-        else
-        {
-            if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
-                return "Wrong operands number";
-            }
-            else if(mnemonic == "RESW" || mnemonic == "RESB")
-                return validateRes(line);
-            else if(mnemonic == "BYTE")
-                return validateByte(line);
-            else if(mnemonic == "START")
-                return validateStart(line);
-
+    } else {
+        if(mnemonic.at(0) == '+')
+            mnemonic = mnemonic.substr(1,mnemonic.length()-1);
+        if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
+            return "Wrong operands number";
         }
+        else if(mnemonic == "RESW" || mnemonic == "RESB")
+            return validateRes(line);
+        else if(mnemonic == "BYTE")
+            return validateByte(line);
+        else if(mnemonic == "START")
+            return validateStart(line);
+
+    }
+
     return " ";
 
 }
