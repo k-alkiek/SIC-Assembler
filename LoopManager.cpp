@@ -2,7 +2,7 @@
 
 PrimaryData LoopManager::loop(vector<Command> commands) {
     string startingAddress;
-    int programLength;
+    programLength = 0;
     string nameOfProgram;
     vector<Command>::iterator it;
     vector<Command> finalCommands;
@@ -17,7 +17,7 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
     startingAddress = command.operands.at(0);
     nameOfProgram = command.label;
     command.address = startingAddress;
-    locationCounter = stoi(startingAddress);
+    locationCounter = hexToDecimal(startingAddress);
     finalCommands.push_back(command);
     ++it;
     while (it != commands.end()) {
@@ -29,14 +29,16 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
-            locationCounter = stoi(getOperandValue(command.operands.front()).address);
+            locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
         }
         else if (command.mnemonic.compare("LTORG") == 0){
             dumpLiterals(literalsBuffer);
         }
 
         if (command.operands.front()[0] == '=') {     //literal operand
-            literalsBuffer.push_back(command.operands.front());
+            if (symbolTable.find(command.operands.front()) == symbolTable.end()) {
+                literalsBuffer.push_back(command.operands.front());
+            }
         }
         if(command.label.compare("") != 0){
             if(command.label.compare(nameOfProgram) == 0) {
@@ -52,18 +54,18 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
                 string temp = getCurrentLocation();
                 labelInfo info;
                 info.address = temp;
-                info.type = "relative";
+                info.type = "Relative";
                 std::pair<std::string,labelInfo> trying = std::make_pair(command.label,info);
                  symbolTable.insert(trying);
             }
         }
         locationCounter += command.getNeededSpace();
+        programLength += command.getNeededSpace();
         it++;
     }
-    programLength = locationCounter - stoi(startingAddress);
     PrimaryData data;
     data.symbolTable = symbolTable;
-    data.programLength = programLength;
+    data.programLength = decimalToHex(programLength);
     data.startingAddress = startingAddress;
     data.commands = finalCommands;
     return data;
@@ -72,10 +74,9 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
 void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
-        literalTable.insert(make_pair(literal, getCurrentLocation()));//remember barie
         labelInfo info;
         info.address = getCurrentLocation();
-        info.type = "relative";
+        info.type = "Relative";
 
         symbolTable.insert(make_pair(literal,info));
         string value = literal.substr(3, literal.length() - 4);
@@ -92,12 +93,13 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
         }
 
         locationCounter += space;
+        programLength += space;
     }
     literalsBuffer.clear();
 }
 
 string LoopManager::getCurrentLocation() {
-    string temp = to_string(locationCounter);
+    string temp = decimalToHex(locationCounter);
     while (temp.length() < 4){
         temp = "0" + temp;
     }
@@ -108,6 +110,9 @@ labelInfo LoopManager::getOperandValue(string operand) {
     labelInfo info;
     try {
         int value =stoi(operand);
+        while (operand.length() < 4) {
+            operand = "0" + operand;
+        }
         info.address = operand;
         info.type = "Absolute";
     } catch (invalid_argument e) {
@@ -119,4 +124,21 @@ labelInfo LoopManager::getOperandValue(string operand) {
         else throw invalid_argument("Invalid value");
     }
     return info;
+}
+
+int LoopManager::hexToDecimal(string hexValue) {
+    int decimalValue;
+    std::stringstream ss;
+    ss  << hexValue;
+    ss >> std::hex >> decimalValue;
+
+    return decimalValue;
+}
+
+string LoopManager::decimalToHex(int decimalValue) {
+    std::stringstream ss;
+    ss << std::hex << decimalValue;
+    std::string res ( ss.str() );
+
+    return res;
 }

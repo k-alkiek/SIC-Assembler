@@ -8,12 +8,14 @@ using namespace std;
 class LoopManager {
 private:
     map<string,labelInfo> symbolTable;
-    map<string,string> literalTable;
     int locationCounter;
+    int programLength;
 
     void dumpLiterals(vector<string> literalsBuffer);
     string getCurrentLocation();
     labelInfo getOperandValue(string operand);
+    int hexToDecimal(string hexValue);
+    string decimalToHex(int decimalValue);
 public:
     PrimaryData loop(vector<Command> commands);
 };

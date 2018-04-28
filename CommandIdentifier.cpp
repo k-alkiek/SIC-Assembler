@@ -65,7 +65,7 @@ CommandIdentifier::CommandIdentifier(){
 //TODO someone see if this is right
     opTable.insert(pair <string, OperationInfo> ("RESW",OperationInfo("",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("RESB",OperationInfo("",true,1,3)));
-    opTable.insert(pair <string, OperationInfo> ("WORD",OperationInfo("",true,1,3)));
+    opTable.insert(pair <string, OperationInfo> ("WORD",OperationInfo("",true,2,3)));
     opTable.insert(pair <string, OperationInfo> ("BYTE",OperationInfo("",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("END",OperationInfo("",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("START",OperationInfo("",true,1,3)));
