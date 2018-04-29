@@ -18,6 +18,12 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     {
         char c = validateLineRegex(lines[i]);
         if(c == 'n') {
+
+            if(lines[i] == "")
+            {
+                commentCount++;
+                continue;
+            }
             Command line = extractData(lines[i]);
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, "Invalid line");
