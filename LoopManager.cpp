@@ -32,6 +32,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         msg.msg = "INVALID START instruction";
         newWrongCommands.push_back(msg);
         finalCommands.push_back(command);
+        ++it;
     } else {
         startingAddress = command.operands.at(0);
         nameOfProgram = command.label;
@@ -191,7 +192,11 @@ labelInfo LoopManager::getOperandValue(string operand) {
         info.address = operand;
         info.type = "Absolute";
     } catch (invalid_argument e) {
-        if (LoopManager::symbolTable.find(operand) != symbolTable.end()) {
+        if (operand == "*") {
+            info.address = getCurrentLocation();
+            info.type = "Absolute";
+        }
+        else if (LoopManager::symbolTable.find(operand) != symbolTable.end()) {
             string tmpValue = symbolTable.find(operand)->second.address;
             info.address = tmpValue;
             info.type = symbolTable.find(operand)->second.type;
