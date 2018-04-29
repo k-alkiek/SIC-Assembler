@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "LoopManager.h"
 #include "ErrorMsg.h"
 
@@ -35,6 +36,10 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         ++it;
     } else {
         startingAddress = command.operands.at(0);
+        while (startingAddress.length() < 4){
+            startingAddress = "0" + startingAddress;
+        }
+        std::transform(startingAddress.begin(), startingAddress.end(), startingAddress.begin(), ::toupper);
         nameOfProgram = command.label;
         command.address = startingAddress;
         locationCounter = hexToDecimal(startingAddress);
@@ -219,6 +224,6 @@ string LoopManager::decimalToHex(int decimalValue) {
     std::stringstream ss;
     ss << std::hex << decimalValue;
     std::string res ( ss.str() );
-
+    std::transform(res.begin(), res.end(), res.begin(), ::toupper);
     return res;
 }
