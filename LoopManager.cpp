@@ -32,6 +32,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         msg.msg = "INVALID START instruction";
         newWrongCommands.push_back(msg);
         finalCommands.push_back(command);
+        ++it;
     } else {
         startingAddress = command.operands.at(0);
         nameOfProgram = command.label;
