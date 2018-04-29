@@ -10,6 +10,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
     Command command;
     it = commands.begin();
     command = *it;
+    programLength = 0;
     vector<string> literalsBuffer;
     int count = 0;
     vector<ErrorMsg>::iterator wrongCommandsIterator = wrongCommands.begin();
@@ -117,7 +118,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
                 info.address = temp;
                 info.type = "Relative";
                 std::pair<std::string,labelInfo> trying = std::make_pair(command.label,info);
-                 symbolTable.insert(trying);
+                symbolTable.insert(trying);
             }
         }
         locationCounter += command.getNeededSpace();
