@@ -119,7 +119,26 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[0];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[1]);
+                if(splitedCommand[1].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    commandData.operands.push_back(splitedCommand[1]);
+                }
             }
             else{
                 std::istringstream ss(splitedCommand[1]);
@@ -141,7 +160,26 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[1];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[2]);
+                if(splitedCommand[2].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    commandData.operands.push_back(splitedCommand[2]);
+                }
             }
             else{
                 std::istringstream ss(splitedCommand[2]);
