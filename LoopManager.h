@@ -3,6 +3,7 @@
 #include "FileReader.h"
 #include "PrimaryData.h"
 #include "labelInfo.h"
+#include "ErrorMsg.h"
 
 using namespace std;
 class LoopManager {
@@ -17,5 +18,5 @@ private:
     int hexToDecimal(string hexValue);
     string decimalToHex(int decimalValue);
 public:
-    PrimaryData loop(vector<Command> commands);
+    PrimaryData loop(vector<Command> commands, vector<ErrorMsg> wrongCommands);
 };

@@ -1,10 +1,5 @@
-//
-// Created by abdelrahman on 27/04/18.
-//
-
 #include "FileWriter.h"
 void FileWriter::writeToFile(string fileName, PrimaryData data) {
-
     ofstream file;
     int count = 0;
     file.open (fileName);
@@ -44,29 +39,36 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         } else {
             file<<"\n";
         }
+        if(data.errorMsgsMap.find(count-1) != data.errorMsgsMap.end())
+            file<<"             ***"<<data.errorMsgsMap.find(count - 1)->second<<"\n";
     }
-    int tmp;
-    file<<"\n\nlabel        type          address\n";
-    for(map<string,labelInfo >::const_iterator it = data.symbolTable.begin();
-        it != data.symbolTable.end(); ++it)
-    {
-        file << it->first;
-        tmp = it->first.size();
-        while (tmp < 13) {
-            file<<" ";
-            tmp++;
-        }
-        file << it->second.type;
-        tmp = it->second.type.size();
-        while (tmp < 14) {
-            file<<" ";
-            tmp++;
-        }
-        file << it->second.address;
-        file<<"\n";
-    }
+    if(data.errorMsgsMap.size() != 0){
+        file<<"\n\n        UNSUCCESSFUL COMPILATION !\n";
 
+    } else{
+        int tmp;
+        file<<"\n\nlabel        type          address\n";
+        for(map<string,labelInfo >::const_iterator it = data.symbolTable.begin();
+            it != data.symbolTable.end(); ++it)
+        {
+            file << it->first;
+            tmp = it->first.size();
+            while (tmp < 13) {
+                file<<" ";
+                tmp++;
+            }
+            file << it->second.type;
+            tmp = it->second.type.size();
+            while (tmp < 14) {
+                file<<" ";
+                tmp++;
+            }
+            file << it->second.address;
+            file<<"\n";
+        }
+
+        file<<"\n\n        SUCCESSFUL COMPILATION !\n";
+    }
 
     file.close();
-
 }

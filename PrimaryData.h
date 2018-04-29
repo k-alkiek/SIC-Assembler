@@ -15,6 +15,7 @@ public:
     map<string,labelInfo> symbolTable;
     string programLength;
     vector<Command> commands;
+    map<int, string> errorMsgsMap;
 };
 
 #endif

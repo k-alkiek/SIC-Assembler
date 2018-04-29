@@ -38,6 +38,7 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, cond);
             wrongCommands.push_back(errorMsg);
+            commands.push_back(line);
         }
 
     }
@@ -76,11 +77,12 @@ string CommandParser::validateLineSyntax(Command line){
             return "No operands exist";
         return validateWord(line);
     }
-    else if(mnemonic == "END")
-        if(line.operands.size() != 0 && line.operands.size() != 1)
+    else if(mnemonic == "END") {
+        if (line.operands.size() != 0 && line.operands.size() != 1)
             return "Wrong operands number";
-    else
-    {
+    } else {
+        if(mnemonic.at(0) == '+')
+            mnemonic = mnemonic.substr(1,mnemonic.length()-1);
         if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
             return "Wrong operands number";
         }
@@ -92,6 +94,7 @@ string CommandParser::validateLineSyntax(Command line){
             return validateStart(line);
 
     }
+
     return " ";
 
 }
@@ -130,10 +133,10 @@ Command CommandParser::extractData(string line) {
     }
     commandData.label = splitedCommand[0];
     canBeOperation = splitedCommand[1];
-    if(canBeOperation[1] == '+') {
+    if(canBeOperation[0] == '+') {
         canBeOperation = canBeOperation.substr(1,canBeOperation.length()-1);
     }
-    isOperation = commandIdentifier.isInTable(splitedCommand[1]);
+    isOperation = commandIdentifier.isInTable(canBeOperation);
     if (isOperation) {
         commandData.mnemonic = splitedCommand[1];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
