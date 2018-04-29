@@ -47,6 +47,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         finalCommands.push_back(command);
         if(wrongCommandsIterator != wrongCommands.end() && (*wrongCommandsIterator).index == count) {
             ++wrongCommandsIterator;
+            ++it;
             continue;
         }
 

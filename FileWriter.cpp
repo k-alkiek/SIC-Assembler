@@ -42,25 +42,32 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         if(data.errorMsgsMap.find(count-1) != data.errorMsgsMap.end())
             file<<"             ***"<<data.errorMsgsMap.find(count - 1)->second<<"\n";
     }
-    int tmp;
-    file<<"\n\nlabel        type          address\n";
-    for(map<string,labelInfo >::const_iterator it = data.symbolTable.begin();
-        it != data.symbolTable.end(); ++it)
-    {
-        file << it->first;
-        tmp = it->first.size();
-        while (tmp < 13) {
-            file<<" ";
-            tmp++;
+    if(data.errorMsgsMap.size() != 0){
+        file<<"\n\n        UNSUCCESSFUL COMPILATION !\n";
+
+    } else{
+        int tmp;
+        file<<"\n\nlabel        type          address\n";
+        for(map<string,labelInfo >::const_iterator it = data.symbolTable.begin();
+            it != data.symbolTable.end(); ++it)
+        {
+            file << it->first;
+            tmp = it->first.size();
+            while (tmp < 13) {
+                file<<" ";
+                tmp++;
+            }
+            file << it->second.type;
+            tmp = it->second.type.size();
+            while (tmp < 14) {
+                file<<" ";
+                tmp++;
+            }
+            file << it->second.address;
+            file<<"\n";
         }
-        file << it->second.type;
-        tmp = it->second.type.size();
-        while (tmp < 14) {
-            file<<" ";
-            tmp++;
-        }
-        file << it->second.address;
-        file<<"\n";
+
+        file<<"\n\n        SUCCESSFUL COMPILATION !\n";
     }
 
     file.close();

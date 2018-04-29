@@ -8,12 +8,12 @@ int main() {
     CommandParser commandParser;
     LoopManager manager;
     PrimaryData data;
-    vector<Command> commands;// = commandParser.parseFile(reader.readFile("/home/khaled/test.txt"));
-    commands = commandParser.parseFile(reader.readFile("/home/saraheldafrawy/CLionProjects/SIC-Assembler/testInput.txt"));
-    data = manager.loop(commands);
+    vector<Command> commands = commandParser.parseFile(reader.readFile("Input.txt"));
+    vector<ErrorMsg> wrongCommands = commandParser.getWrongCommands();
+    data = manager.loop(commands,wrongCommands);
 
     FileWriter writer;
-    writer.writeToFile("/home/saraheldafrawy/CLionProjects/SIC-Assembler/test2.txt",data);
+    writer.writeToFile("Output.txt",data);
     return 0;
 
 
