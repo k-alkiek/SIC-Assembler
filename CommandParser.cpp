@@ -188,6 +188,8 @@ Command CommandParser::extractData(string line) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
                 if(splitedCommand[2].find('\'') != std::string::npos){
                     int operandIndex = line.find('\'') - 1;
+                    if(line.find('=') != std::string::npos)
+                        operandIndex = line.find('=');
                     string commaOperand;
                     int flag = 0;
                     while (true){
