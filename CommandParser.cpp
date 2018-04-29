@@ -84,7 +84,12 @@ string CommandParser::validateLineSyntax(Command line){
             return "Wrong operands number";
     } else {
         if(mnemonic.at(0) == '+')
+        {
             mnemonic = mnemonic.substr(1,mnemonic.length()-1);
+            if(commandIdentifier.getInfo(mnemonic).format != 3)
+                return "Invalid format 4";
+
+        }
         if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
             return "Wrong operands number";
         }
