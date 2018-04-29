@@ -17,7 +17,12 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
-        if(c == 'n') {
+        if(c == 's')
+        {
+            commentCount++;
+            continue;
+        }
+        else if(c == 'n') {
             if(lines[i] == "")
             {
                 commentCount++;
@@ -57,10 +62,15 @@ char CommandParser::validateLineRegex(string line){
 
     regex c("\\s*\\.+[^\\n]*\\s*");
     regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
+    regex s("\\s+");
     smatch m;
 
     regex_match(line,m,c);
     int commentSize = m.size();
+
+    regex_match(line,m,s);
+    if(m.size() != 0)
+        return 's';
 
     regex_match(line,m,r);
     if(m.size() != 0)
