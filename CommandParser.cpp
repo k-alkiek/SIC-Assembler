@@ -139,14 +139,18 @@ Command CommandParser::extractData(string line) {
                     commandData.operands.push_back(commaOperand);
                 }
                 else {
-                    commandData.operands.push_back(splitedCommand[1]);
+                    if(splitedCommand[1].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[1]);
+                    }
                 }
             }
             else{
-                std::istringstream ss(splitedCommand[1]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[1].length() != 0) {
+                    std::istringstream ss(splitedCommand[1]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
@@ -180,14 +184,18 @@ Command CommandParser::extractData(string line) {
                     commandData.operands.push_back(commaOperand);
                 }
                 else {
-                    commandData.operands.push_back(splitedCommand[2]);
+                    if(splitedCommand[2].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[2]);
+                    }
                 }
             }
             else{
-                std::istringstream ss(splitedCommand[2]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[2].length() != 0) {
+                    std::istringstream ss(splitedCommand[2]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
