@@ -18,9 +18,11 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     {
         char c = validateLineRegex(lines[i]);
         if(c == 'n') {
+            Command line = extractData(lines[i]);
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, "Invalid line");
             wrongCommands.push_back(errorMsg);
+            commands.push_back(line);
             continue;
         } else if (c == 'c')
         {
@@ -119,13 +121,36 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[0];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[1]);
+                if(splitedCommand[1].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    if(splitedCommand[1].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[1]);
+                    }
+                }
             }
             else{
-                std::istringstream ss(splitedCommand[1]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[1].length() != 0) {
+                    std::istringstream ss(splitedCommand[1]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
@@ -141,13 +166,36 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[1];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[2]);
+                if(splitedCommand[2].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    if(splitedCommand[2].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[2]);
+                    }
+                }
             }
             else{
-                std::istringstream ss(splitedCommand[2]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[2].length() != 0) {
+                    std::istringstream ss(splitedCommand[2]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
@@ -169,10 +217,12 @@ string CommandParser::validateWord(Command command) {
         {
             if(operand.at(0) != '-')
                 return "Not compatible length";
+            if(operand.length() > 5)
+                return "Not compatible length";
         }
 
         int j = 0;
-        if(operand.at(0) != '-')
+        if(operand.at(0) == '-')
             j=1;
 
         for(j ; j < operand.length() ; j++)

@@ -32,6 +32,8 @@ int Command::getNeededSpace() {
         return 0;
     } else if(mnemonic.compare("BASE") == 0) {
         return 0;
+    } else if(mnemonic.compare("NOBASE") == 0) {
+        return 0;
     } else if (opTable.isInTable(mnemonic)) {
         return opTable.getInfo(mnemonic).format;
     }

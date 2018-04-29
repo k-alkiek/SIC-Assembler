@@ -73,6 +73,7 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair <string, OperationInfo> ("ORG",OperationInfo("",true,1,3)));
     ////////////
     opTable.insert(pair<string, OperationInfo>("BASE", OperationInfo("", true,1,3)));
+    opTable.insert(pair<string, OperationInfo>("NOBASE", OperationInfo("", true,1,3)));
 
 }
 
