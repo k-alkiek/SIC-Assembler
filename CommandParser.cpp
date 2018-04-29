@@ -19,6 +19,7 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
         char c = validateLineRegex(lines[i]);
         if(c == 'n') {
 
+
             if(lines[i] == "")
             {
                 commentCount++;
