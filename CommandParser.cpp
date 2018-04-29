@@ -18,9 +18,11 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     {
         char c = validateLineRegex(lines[i]);
         if(c == 'n') {
+            Command line = extractData(lines[i]);
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, "Invalid line");
             wrongCommands.push_back(errorMsg);
+            commands.push_back(line);
             continue;
         } else if (c == 'c')
         {
@@ -207,10 +209,12 @@ string CommandParser::validateWord(Command command) {
         {
             if(operand.at(0) != '-')
                 return "Not compatible length";
+            if(operand.length() > 5)
+                return "Not compatible length";
         }
 
         int j = 0;
-        if(operand.at(0) != '-')
+        if(operand.at(0) == '-')
             j=1;
 
         for(j ; j < operand.length() ; j++)
