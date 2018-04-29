@@ -1,10 +1,5 @@
-//
-// Created by abdelrahman on 27/04/18.
-//
-
 #include "FileWriter.h"
 void FileWriter::writeToFile(string fileName, PrimaryData data) {
-
     ofstream file;
     int count = 0;
     file.open (fileName);
@@ -44,6 +39,8 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         } else {
             file<<"\n";
         }
+        if(data.errorMsgsMap.find(count-1) != data.errorMsgsMap.end())
+            file<<"             ***"<<data.errorMsgsMap.find(count - 1)->second<<"\n";
     }
     int tmp;
     file<<"\n\nlabel        type          address\n";
@@ -66,7 +63,5 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         file<<"\n";
     }
 
-
     file.close();
-
 }

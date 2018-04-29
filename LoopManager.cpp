@@ -1,35 +1,72 @@
 #include "LoopManager.h"
+#include "ErrorMsg.h"
 
-PrimaryData LoopManager::loop(vector<Command> commands) {
+PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
-    programLength = 0;
     string nameOfProgram;
     vector<Command>::iterator it;
     vector<Command> finalCommands;
+    vector<ErrorMsg> newWrongCommands;
     Command command;
     it = commands.begin();
     command = *it;
     vector<string> literalsBuffer;
+    int count = 0;
+    vector<ErrorMsg>::iterator wrongCommandsIterator = wrongCommands.begin();
+    map<int, string> errorMsgsMap;
 
-    if(command.mnemonic != "START") {
-        //TODO error
+    if(wrongCommandsIterator != wrongCommands.end()&&(*wrongCommandsIterator).index == count) {
+        startingAddress = "0000";
+        nameOfProgram = "NONE";
+        command.address = "0000";
+        locationCounter = 0;
+        ++wrongCommandsIterator;
+    } else if(command.mnemonic != "START") {
+        startingAddress = "0000";
+        nameOfProgram = "NONE";
+        command.address = "0000";
+        locationCounter = 0;
+        ErrorMsg msg;
+        msg.index = count;
+        msg.msg = "INVALID START instruction";
+        newWrongCommands.push_back(msg);
+        finalCommands.push_back(command);
+    } else {
+        startingAddress = command.operands.at(0);
+        nameOfProgram = command.label;
+        command.address = startingAddress;
+        locationCounter = hexToDecimal(startingAddress);
+        finalCommands.push_back(command);
+        ++it;
     }
-    startingAddress = command.operands.at(0);
-    nameOfProgram = command.label;
-    command.address = startingAddress;
-    locationCounter = hexToDecimal(startingAddress);
-    finalCommands.push_back(command);
-    ++it;
+
     while (it != commands.end()) {
+        count++;
         command = *it;
         command.address = getCurrentLocation();
         finalCommands.push_back(command);
+        if(wrongCommandsIterator != wrongCommands.end() && (*wrongCommandsIterator).index == count) {
+            ++wrongCommandsIterator;
+            continue;
+        }
+
         if(command.mnemonic.compare("END") == 0){
             dumpLiterals(literalsBuffer);
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
-            locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
+            try {
+                locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
+            } catch (invalid_argument e) {
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "The label " + command.operands.at(0) + " hasn't been yet defined";
+                newWrongCommands.push_back(msg);
+                ++it;
+                continue;
+            }
+
+
         }
         else if (command.mnemonic.compare("LTORG") == 0){
             dumpLiterals(literalsBuffer);
@@ -43,13 +80,36 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
         if(command.label.compare("") != 0){
             if(command.label.compare(nameOfProgram) == 0) {
                 //TODO error
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "The label " + command.label + " has the same name as the program";
+                newWrongCommands.push_back(msg);
+                ++it;
+                continue;
+
             }
             if (command.mnemonic.compare("EQU") == 0) {
-                symbolTable[command.label] = getOperandValue(command.operands.front());
+                try {
+                    symbolTable[command.label] = getOperandValue(command.operands.front());
+                } catch (invalid_argument e) {
+                    ErrorMsg msg;
+                    msg.index = count;
+                    msg.msg = "The label " + command.operands.at(0) + " hasn't been yet defined";
+                    newWrongCommands.push_back(msg);
+                    ++it;
+                    continue;
+                }
+
             }
             else {
                 if(LoopManager::symbolTable.find(command.label) != symbolTable.end()){
                     //TODO error
+                    ErrorMsg msg;
+                    msg.index = count;
+                    msg.msg = "The label " + command.label + " is already defined";
+                    newWrongCommands.push_back(msg);
+                    ++it;
+                    continue;
                 }
                 string temp = getCurrentLocation();
                 labelInfo info;
@@ -63,7 +123,20 @@ PrimaryData LoopManager::loop(vector<Command> commands) {
         programLength += command.getNeededSpace();
         it++;
     }
+
+
+    for (vector<ErrorMsg>::iterator it = wrongCommands.begin(); it != wrongCommands.end(); it++) {
+        ErrorMsg errorMsg = *it;
+        errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
+    }
+
+    for (vector<ErrorMsg>::iterator it = newWrongCommands.begin(); it != newWrongCommands.end(); it++) {
+        ErrorMsg errorMsg = *it;
+        errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
+    }
+
     PrimaryData data;
+    data.errorMsgsMap = errorMsgsMap;
     data.symbolTable = symbolTable;
     data.programLength = decimalToHex(programLength);
     data.startingAddress = startingAddress;

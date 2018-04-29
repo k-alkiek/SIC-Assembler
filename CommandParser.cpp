@@ -38,6 +38,7 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, cond);
             wrongCommands.push_back(errorMsg);
+            commands.push_back(line);
         }
 
     }
