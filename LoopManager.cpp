@@ -17,6 +17,8 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
     vector<ErrorMsg>::iterator wrongCommandsIterator = wrongCommands.begin();
     map<int, string> errorMsgsMap;
 
+    bool endFound = false;
+
     if(wrongCommandsIterator != wrongCommands.end()&&(*wrongCommandsIterator).index == count) {
         startingAddress = "0000";
         nameOfProgram = "NONE";
@@ -60,6 +62,13 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
 
         if(command.mnemonic.compare("END") == 0){
             dumpLiterals(literalsBuffer);
+            endFound = true;
+            if (++it != commands.end()) {
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "Detected lines after END statement";
+                newWrongCommands.push_back(msg);
+            }
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
@@ -142,12 +151,19 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
                 symbolTable.insert(trying);
             }
         }
+
         locationCounter += command.getNeededSpace();
         programLength += command.getNeededSpace();
         it++;
     }
 
-
+    if (!endFound) {
+        ErrorMsg msg;
+        msg.index = count;
+        msg.msg = "No END statement found";
+        newWrongCommands.push_back(msg);
+    }
+    
     for (vector<ErrorMsg>::iterator it = wrongCommands.begin(); it != wrongCommands.end(); it++) {
         ErrorMsg errorMsg = *it;
         errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
@@ -157,6 +173,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         ErrorMsg errorMsg = *it;
         errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
     }
+
 
     PrimaryData data;
     data.errorMsgsMap = errorMsgsMap;

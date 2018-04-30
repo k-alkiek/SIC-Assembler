@@ -20,6 +20,8 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
             tmp++;
         }
         file <<(*it).label;
+
+
         tmp = (*it).label.size();
         while (tmp < 10) {
             file<<" ";
@@ -41,6 +43,23 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         }
         if(data.errorMsgsMap.find(count-1) != data.errorMsgsMap.end())
             file<<"             ***"<<data.errorMsgsMap.find(count - 1)->second<<"\n";
+
+
+        if (it->label == "KITTEN") {
+            file << "   ____" << endl;
+            file <<         "  (.   \\"<< endl;
+            file << "    \\  |   "<< endl;
+            file << "     \\ |___(\\--/)"<< endl;
+            file << "   __/    (  . . )      meow!"<< endl;
+            file << "  \"\'._.    '-.O.'"<< endl;
+            file << "       \'-.  \\ \"|\\"<< endl;
+            file << "          \'.,,/\'.,,"<< endl;
+        }
+        if (it->label == "INFWAR") {
+            file << endl;
+            file << "iron man and black Panther will die at the end of infinity war" << endl;
+            file << endl;
+        }
     }
     if(data.errorMsgsMap.size() != 0){
         file<<"\n\n        UNSUCCESSFUL COMPILATION !\n";
