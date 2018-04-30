@@ -96,6 +96,18 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
                 continue;
 
             }
+            try {
+                stoi(command.label);
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "The label " + command.label + " is invalid";
+                newWrongCommands.push_back(msg);
+                ++it;
+                continue;
+
+            } catch (exception e) {
+                    //do nothing
+            }
             if (command.mnemonic.compare("EQU") == 0) {
                 try {
                     symbolTable[command.label] = getOperandValue(command.operands.front());
@@ -158,7 +170,6 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
         labelInfo info;
         info.address = getCurrentLocation();
         info.type = "Relative";
-
         symbolTable.insert(make_pair(literal,info));
         string value = literal.substr(3, literal.length() - 4);
         char type = literal[1];

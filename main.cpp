@@ -8,7 +8,16 @@ int main() {
     CommandParser commandParser;
     LoopManager manager;
     PrimaryData data;
-    vector<Command> commands = commandParser.parseFile(reader.readFile("Input.txt"));
+
+    vector<string> lines = reader.readFile("Input.txt");
+    if(lines.size() == 0){
+
+        ofstream file;
+        file.open ("Output.txt");
+        file<<"the input file is empty";
+        return 0;
+    }
+    vector<Command> commands = commandParser.parseFile(lines);
     vector<ErrorMsg> wrongCommands = commandParser.getWrongCommands();
     data = manager.loop(commands,wrongCommands);
 
