@@ -97,7 +97,10 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
 
             }
             try {
-                stoi(command.label);
+                char firstChar = command.label[0];
+                string tmp;
+                tmp += firstChar;
+                stoi(tmp);
                 ErrorMsg msg;
                 msg.index = count;
                 msg.msg = "The label " + command.label + " is invalid";
