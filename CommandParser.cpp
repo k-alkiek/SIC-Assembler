@@ -17,10 +17,22 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
-        if(c == 'n') {
+        if(c == 's')
+        {
+            commentCount++;
+            continue;
+        }
+        else if(c == 'n') {
+            if(lines[i] == "")
+            {
+                commentCount++;
+                continue;
+            }
+            Command line = extractData(lines[i]);
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, "Invalid line");
             wrongCommands.push_back(errorMsg);
+            commands.push_back(line);
             continue;
         } else if (c == 'c')
         {
@@ -49,11 +61,16 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
 char CommandParser::validateLineRegex(string line){
 
     regex c("\\s*\\.+[^\\n]*\\s*");
-    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
+    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',-]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
+    regex s("\\s+");
     smatch m;
 
     regex_match(line,m,c);
     int commentSize = m.size();
+
+    regex_match(line,m,s);
+    if(m.size() != 0)
+        return 's';
 
     regex_match(line,m,r);
     if(m.size() != 0)
@@ -82,7 +99,12 @@ string CommandParser::validateLineSyntax(Command line){
             return "Wrong operands number";
     } else {
         if(mnemonic.at(0) == '+')
+        {
             mnemonic = mnemonic.substr(1,mnemonic.length()-1);
+            if(commandIdentifier.getInfo(mnemonic).format != 3)
+                return "Invalid format 4";
+
+        }
         if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
             return "Wrong operands number";
         }
@@ -119,13 +141,38 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[0];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[1]);
+                if(splitedCommand[1].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    if(line.find('=') != std::string::npos)
+                        operandIndex = line.find('=');
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    if(splitedCommand[1].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[1]);
+                    }
+                }
             }
             else{
-                std::istringstream ss(splitedCommand[1]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[1].length() != 0) {
+                    std::istringstream ss(splitedCommand[1]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
@@ -141,13 +188,38 @@ Command CommandParser::extractData(string line) {
         commandData.mnemonic = splitedCommand[1];
         if (commandIdentifier.getInfo(canBeOperation).hasOperand) {
             if(commandIdentifier.getInfo(canBeOperation).numberOfOperands == 1){
-                commandData.operands.push_back(splitedCommand[2]);
+                if(splitedCommand[2].find('\'') != std::string::npos){
+                    int operandIndex = line.find('\'') - 1;
+                    if(line.find('=') != std::string::npos)
+                        operandIndex = line.find('=');
+                    string commaOperand;
+                    int flag = 0;
+                    while (true){
+                        char x = line[operandIndex];
+                        commaOperand += x;
+                        if(line[operandIndex] == '\'' ){
+                            if(flag == 0)
+                                flag++;
+                            else
+                                break;
+                        }
+                        operandIndex++;
+                    }
+                    commandData.operands.push_back(commaOperand);
+                }
+                else {
+                    if(splitedCommand[2].length() != 0) {
+                        commandData.operands.push_back(splitedCommand[2]);
+                    }
+                }
             }
             else{
-                std::istringstream ss(splitedCommand[2]);
-                std::string operand;
-                while(std::getline(ss, operand, ',')) {
-                    commandData.operands.push_back(operand);
+                if(splitedCommand[2].length() != 0) {
+                    std::istringstream ss(splitedCommand[2]);
+                    std::string operand;
+                    while (std::getline(ss, operand, ',')) {
+                        commandData.operands.push_back(operand);
+                    }
                 }
             }
         }
@@ -169,10 +241,12 @@ string CommandParser::validateWord(Command command) {
         {
             if(operand.at(0) != '-')
                 return "Not compatible length";
+            if(operand.length() > 5)
+                return "Not compatible length";
         }
 
         int j = 0;
-        if(operand.at(0) != '-')
+        if(operand.at(0) == '-')
             j=1;
 
         for(j ; j < operand.length() ; j++)

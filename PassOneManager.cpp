@@ -1,7 +1,8 @@
-#include "LoopManager.h"
+#include <algorithm>
+#include "PassOneManager.h"
 #include "ErrorMsg.h"
 
-PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
+PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
     string nameOfProgram;
     vector<Command>::iterator it;
@@ -15,6 +16,8 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
     int count = 0;
     vector<ErrorMsg>::iterator wrongCommandsIterator = wrongCommands.begin();
     map<int, string> errorMsgsMap;
+
+    bool endFound = false;
 
     if(wrongCommandsIterator != wrongCommands.end()&&(*wrongCommandsIterator).index == count) {
         startingAddress = "0000";
@@ -32,11 +35,16 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         msg.msg = "INVALID START instruction";
         newWrongCommands.push_back(msg);
         finalCommands.push_back(command);
+        ++it;
     } else {
         startingAddress = command.operands.at(0);
+        while (startingAddress.length() < 4){
+            startingAddress = "0" + startingAddress;
+        }
+        std::transform(startingAddress.begin(), startingAddress.end(), startingAddress.begin(), ::toupper);
         nameOfProgram = command.label;
         command.address = startingAddress;
-        locationCounter = hexToDecimal(startingAddress);
+        locationCounter = hexaConverter.hexToDecimal(startingAddress);
         finalCommands.push_back(command);
         ++it;
     }
@@ -54,11 +62,18 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
 
         if(command.mnemonic.compare("END") == 0){
             dumpLiterals(literalsBuffer);
+            endFound = true;
+            if (++it != commands.end()) {
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "Detected lines after END statement";
+                newWrongCommands.push_back(msg);
+            }
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
             try {
-                locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
+                locationCounter = hexaConverter.hexToDecimal(getOperandValue(command.operands.front()).address);
             } catch (invalid_argument e) {
                 ErrorMsg msg;
                 msg.index = count;
@@ -90,6 +105,21 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
                 continue;
 
             }
+            try {
+                char firstChar = command.label[0];
+                string tmp;
+                tmp += firstChar;
+                stoi(tmp);
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "The label " + command.label + " is invalid";
+                newWrongCommands.push_back(msg);
+                ++it;
+                continue;
+
+            } catch (exception e) {
+                    //do nothing
+            }
             if (command.mnemonic.compare("EQU") == 0) {
                 try {
                     symbolTable[command.label] = getOperandValue(command.operands.front());
@@ -104,7 +134,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
 
             }
             else {
-                if(LoopManager::symbolTable.find(command.label) != symbolTable.end()){
+                if(PassOneManager::symbolTable.find(command.label) != symbolTable.end()){
                     //TODO error
                     ErrorMsg msg;
                     msg.index = count;
@@ -121,12 +151,19 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
                 symbolTable.insert(trying);
             }
         }
+
         locationCounter += command.getNeededSpace();
         programLength += command.getNeededSpace();
         it++;
     }
 
-
+    if (!endFound) {
+        ErrorMsg msg;
+        msg.index = count;
+        msg.msg = "No END statement found";
+        newWrongCommands.push_back(msg);
+    }
+    
     for (vector<ErrorMsg>::iterator it = wrongCommands.begin(); it != wrongCommands.end(); it++) {
         ErrorMsg errorMsg = *it;
         errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
@@ -137,22 +174,22 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
         errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
     }
 
+
     PrimaryData data;
     data.errorMsgsMap = errorMsgsMap;
     data.symbolTable = symbolTable;
-    data.programLength = decimalToHex(programLength);
+    data.programLength = hexaConverter.decimalToHex(programLength);
     data.startingAddress = startingAddress;
     data.commands = finalCommands;
     return data;
 }
 
-void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
+void PassOneManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
         labelInfo info;
         info.address = getCurrentLocation();
         info.type = "Relative";
-
         symbolTable.insert(make_pair(literal,info));
         string value = literal.substr(3, literal.length() - 4);
         char type = literal[1];
@@ -173,15 +210,15 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     literalsBuffer.clear();
 }
 
-string LoopManager::getCurrentLocation() {
-    string temp = decimalToHex(locationCounter);
+string PassOneManager::getCurrentLocation() {
+    string temp = hexaConverter.decimalToHex(locationCounter);
     while (temp.length() < 4){
         temp = "0" + temp;
     }
     return temp;
 }
 
-labelInfo LoopManager::getOperandValue(string operand) {
+labelInfo PassOneManager::getOperandValue(string operand) {
     labelInfo info;
     try {
         int value =stoi(operand);
@@ -191,7 +228,11 @@ labelInfo LoopManager::getOperandValue(string operand) {
         info.address = operand;
         info.type = "Absolute";
     } catch (invalid_argument e) {
-        if (LoopManager::symbolTable.find(operand) != symbolTable.end()) {
+        if (operand == "*") {
+            info.address = getCurrentLocation();
+            info.type = "Absolute";
+        }
+        else if (PassOneManager::symbolTable.find(operand) != symbolTable.end()) {
             string tmpValue = symbolTable.find(operand)->second.address;
             info.address = tmpValue;
             info.type = symbolTable.find(operand)->second.type;
@@ -199,21 +240,4 @@ labelInfo LoopManager::getOperandValue(string operand) {
         else throw invalid_argument("Invalid value");
     }
     return info;
-}
-
-int LoopManager::hexToDecimal(string hexValue) {
-    int decimalValue;
-    std::stringstream ss;
-    ss  << hexValue;
-    ss >> std::hex >> decimalValue;
-
-    return decimalValue;
-}
-
-string LoopManager::decimalToHex(int decimalValue) {
-    std::stringstream ss;
-    ss << std::hex << decimalValue;
-    std::string res ( ss.str() );
-
-    return res;
 }

@@ -1,4 +1,6 @@
 #include "FileWriter.h"
+#include "HexaConverter.h"
+
 void FileWriter::writeToFile(string fileName, PrimaryData data) {
     ofstream file;
     int count = 0;
@@ -20,6 +22,8 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
             tmp++;
         }
         file <<(*it).label;
+
+
         tmp = (*it).label.size();
         while (tmp < 10) {
             file<<" ";
@@ -41,6 +45,23 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
         }
         if(data.errorMsgsMap.find(count-1) != data.errorMsgsMap.end())
             file<<"             ***"<<data.errorMsgsMap.find(count - 1)->second<<"\n";
+
+
+        if (it->label == "KITTEN") {
+            file << "   ____" << endl;
+            file <<         "  (.   \\"<< endl;
+            file << "    \\  |   "<< endl;
+            file << "     \\ |___(\\--/)"<< endl;
+            file << "   __/    (  . . )      meow!"<< endl;
+            file << "  \"\'._.    '-.O.'"<< endl;
+            file << "       \'-.  \\ \"|\\"<< endl;
+            file << "          \'.,,/\'.,,"<< endl;
+        }
+        if (it->label == "INFWAR") {
+            file << endl;
+            file << "iron man and black Panther will die at the end of infinity war" << endl;
+            file << endl;
+        }
     }
     if(data.errorMsgsMap.size() != 0){
         file<<"\n\n        UNSUCCESSFUL COMPILATION !\n";
@@ -72,3 +93,87 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
 
     file.close();
 }
+
+
+
+void FileWriter::generateObjectCodeFile(string fileName, vector<string> objectCode, PrimaryData data) {
+    HexaConverter hexaConverter;
+    string result;
+    result = "H";
+    result += data.commands[0].label;
+
+    int tmp = data.commands[0].label.length();
+    while(tmp < 6){
+        result += " ";
+        tmp++;
+    }
+
+    tmp = data.startingAddress.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.startingAddress;
+
+    tmp = data.programLength.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.programLength +"\n";
+    int length = 0;
+    int LIMIT = 62;
+    string textRecord = "T";
+    textRecord += data.startingAddress;
+    string tmpRecord ="";
+    int currentAddress = hexaConverter.hexToDecimal(data.startingAddress);
+    vector<string>::iterator it = objectCode.begin();
+    while(it != objectCode.end()){
+        while (it != objectCode.end() && ((length + (*it).size())< LIMIT)){
+            length += (*it).length();
+            tmpRecord += (*it);
+            ++it;
+        }
+        textRecord = "T" + hexaConverter.decimalToHex(currentAddress);
+        currentAddress = currentAddress+length/2;
+        textRecord += hexaConverter.decimalToHex(length/2)+tmpRecord;
+        tmpRecord = "";
+        result += textRecord +"\n";
+
+        length = 0;
+    }
+    result += "E";
+    tmp = data.startingAddress.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.startingAddress;
+    ofstream file;
+    file.open (fileName);
+    file<<result;
+    file.close();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
