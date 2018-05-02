@@ -6,7 +6,7 @@
 #include "ErrorMsg.h"
 
 using namespace std;
-class LoopManager {
+class PassOneManager {
 private:
     map<string,labelInfo> symbolTable;
     int locationCounter;

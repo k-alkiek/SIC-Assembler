@@ -1,8 +1,8 @@
 #include <algorithm>
-#include "LoopManager.h"
+#include "PassOneManager.h"
 #include "ErrorMsg.h"
 
-PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
+PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
     string nameOfProgram;
     vector<Command>::iterator it;
@@ -134,7 +134,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
 
             }
             else {
-                if(LoopManager::symbolTable.find(command.label) != symbolTable.end()){
+                if(PassOneManager::symbolTable.find(command.label) != symbolTable.end()){
                     //TODO error
                     ErrorMsg msg;
                     msg.index = count;
@@ -184,7 +184,7 @@ PrimaryData LoopManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCo
     return data;
 }
 
-void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
+void PassOneManager::dumpLiterals(vector<string> literalsBuffer) {
     for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
         string literal = *it;
         labelInfo info;
@@ -210,7 +210,7 @@ void LoopManager::dumpLiterals(vector<string> literalsBuffer) {
     literalsBuffer.clear();
 }
 
-string LoopManager::getCurrentLocation() {
+string PassOneManager::getCurrentLocation() {
     string temp = decimalToHex(locationCounter);
     while (temp.length() < 4){
         temp = "0" + temp;
@@ -218,7 +218,7 @@ string LoopManager::getCurrentLocation() {
     return temp;
 }
 
-labelInfo LoopManager::getOperandValue(string operand) {
+labelInfo PassOneManager::getOperandValue(string operand) {
     labelInfo info;
     try {
         int value =stoi(operand);
@@ -232,7 +232,7 @@ labelInfo LoopManager::getOperandValue(string operand) {
             info.address = getCurrentLocation();
             info.type = "Absolute";
         }
-        else if (LoopManager::symbolTable.find(operand) != symbolTable.end()) {
+        else if (PassOneManager::symbolTable.find(operand) != symbolTable.end()) {
             string tmpValue = symbolTable.find(operand)->second.address;
             info.address = tmpValue;
             info.type = symbolTable.find(operand)->second.type;
@@ -242,7 +242,7 @@ labelInfo LoopManager::getOperandValue(string operand) {
     return info;
 }
 
-int LoopManager::hexToDecimal(string hexValue) {
+int PassOneManager::hexToDecimal(string hexValue) {
     int decimalValue;
     std::stringstream ss;
     ss  << hexValue;
@@ -251,7 +251,7 @@ int LoopManager::hexToDecimal(string hexValue) {
     return decimalValue;
 }
 
-string LoopManager::decimalToHex(int decimalValue) {
+string PassOneManager::decimalToHex(int decimalValue) {
     std::stringstream ss;
     ss << std::hex << decimalValue;
     std::string res ( ss.str() );
