@@ -1,4 +1,6 @@
 #include "FileWriter.h"
+#include "HexaConverter.h"
+
 void FileWriter::writeToFile(string fileName, PrimaryData data) {
     ofstream file;
     int count = 0;
@@ -91,3 +93,87 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
 
     file.close();
 }
+
+
+
+void FileWriter::generateObjectCodeFile(string fileName, vector<string> objectCode, PrimaryData data) {
+    HexaConverter hexaConverter;
+    string result;
+    result = "H";
+    result += data.commands[0].label;
+
+    int tmp = data.commands[0].label.length();
+    while(tmp < 6){
+        result += " ";
+        tmp++;
+    }
+
+    tmp = data.startingAddress.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.startingAddress;
+
+    tmp = data.programLength.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.programLength +"\n";
+    int length = 0;
+    int LIMIT = 62;
+    string textRecord = "T";
+    textRecord += data.startingAddress;
+    string tmpRecord ="";
+    int currentAddress = hexaConverter.hexToDecimal(data.startingAddress);
+    vector<string>::iterator it = objectCode.begin();
+    while(it != objectCode.end()){
+        while (it != objectCode.end() && ((length + (*it).size())< LIMIT)){
+            length += (*it).length();
+            tmpRecord += (*it);
+            ++it;
+        }
+        textRecord = "T" + hexaConverter.decimalToHex(currentAddress);
+        currentAddress = currentAddress+length/2;
+        textRecord += hexaConverter.decimalToHex(length/2)+tmpRecord;
+        tmpRecord = "";
+        result += textRecord +"\n";
+
+        length = 0;
+    }
+    result += "E";
+    tmp = data.startingAddress.length();
+    while(tmp < 6){
+        result += "0";
+        tmp++;
+    }
+    result += data.startingAddress;
+    ofstream file;
+    file.open (fileName);
+    file<<result;
+    file.close();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -44,7 +44,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         std::transform(startingAddress.begin(), startingAddress.end(), startingAddress.begin(), ::toupper);
         nameOfProgram = command.label;
         command.address = startingAddress;
-        locationCounter = hexToDecimal(startingAddress);
+        locationCounter = hexaConverter.hexToDecimal(startingAddress);
         finalCommands.push_back(command);
         ++it;
     }
@@ -73,7 +73,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         }
         else if (command.mnemonic.compare("ORG") == 0) {
             try {
-                locationCounter = hexToDecimal(getOperandValue(command.operands.front()).address);
+                locationCounter = hexaConverter.hexToDecimal(getOperandValue(command.operands.front()).address);
             } catch (invalid_argument e) {
                 ErrorMsg msg;
                 msg.index = count;
@@ -178,7 +178,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
     PrimaryData data;
     data.errorMsgsMap = errorMsgsMap;
     data.symbolTable = symbolTable;
-    data.programLength = decimalToHex(programLength);
+    data.programLength = hexaConverter.decimalToHex(programLength);
     data.startingAddress = startingAddress;
     data.commands = finalCommands;
     return data;
@@ -211,7 +211,7 @@ void PassOneManager::dumpLiterals(vector<string> literalsBuffer) {
 }
 
 string PassOneManager::getCurrentLocation() {
-    string temp = decimalToHex(locationCounter);
+    string temp = hexaConverter.decimalToHex(locationCounter);
     while (temp.length() < 4){
         temp = "0" + temp;
     }
@@ -240,21 +240,4 @@ labelInfo PassOneManager::getOperandValue(string operand) {
         else throw invalid_argument("Invalid value");
     }
     return info;
-}
-
-int PassOneManager::hexToDecimal(string hexValue) {
-    int decimalValue;
-    std::stringstream ss;
-    ss  << hexValue;
-    ss >> std::hex >> decimalValue;
-
-    return decimalValue;
-}
-
-string PassOneManager::decimalToHex(int decimalValue) {
-    std::stringstream ss;
-    ss << std::hex << decimalValue;
-    std::string res ( ss.str() );
-    std::transform(res.begin(), res.end(), res.begin(), ::toupper);
-    return res;
 }
