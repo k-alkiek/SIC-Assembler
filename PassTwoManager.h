@@ -11,6 +11,7 @@ class PassTwoManager {
 
 private:
     vector<string> objectCode;
+    string getObjectCode(Command command);
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
 };
