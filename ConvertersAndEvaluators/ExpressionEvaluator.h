@@ -1,16 +1,26 @@
-#ifndef ASSEMBLER_EXPRESSIONEVALUATOR_H
-#define ASSEMBLER_EXPRESSIONEVALUATOR_H
-
 #include <iostream>
 #include <map>
+#include <vector>
+#include "HexaConverter.h"
 #include "../DTOs/labelInfo.h"
+#include "../DTOs/OperandHolder.h"
 
 using namespace std;
 class ExpressionEvaluator {
 public:
-    string evaluateExpression(
-            string expression,map<string,labelInfo> symtable,map<string,string> litTable); // throws exception if illegal
+    map<string,labelInfo> symtable;
+    HexaConverter converter;
+
+    ExpressionEvaluator(map<string,labelInfo> symtable, HexaConverter converter);
+    OperandHolder evaluateExpression(string expression); // throws exception if illegal
+
+private:
+    bool isOperator(char c);
+    void parse_expression(vector<string>* labels, vector<char>* operators, string expression);
+    OperandHolder evaluate(vector<string>* labels, vector<char>* operators);
+
+    vector<OperandHolder> form_operands(vector<string> *labels);
+    bool is_higher(char top, char op);
+
+    OperandHolder calculate(OperandHolder operand1, OperandHolder operand2, char operation);
 };
-
-
-#endif
