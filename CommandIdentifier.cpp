@@ -62,7 +62,7 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair <string, OperationInfo> ("TIX", OperationInfo("2C",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("TIXR", OperationInfo("B8",true,1,2)));
     opTable.insert(pair <string, OperationInfo> ("WD", OperationInfo("DC",true,1,3)));
-//TODO someone see if this is right
+    /////////////
     opTable.insert(pair <string, OperationInfo> ("RESW",OperationInfo("",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("RESB",OperationInfo("",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("WORD",OperationInfo("",true,2,3)));
