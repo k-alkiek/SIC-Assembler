@@ -1,6 +1,6 @@
 #include "CommandParser.h"
 #include "CommandIdentifier.h"
-#include "ErrorMsg.h"
+#include "../DTOs/ErrorMsg.h"
 #include <regex>
 #include <algorithm>
 #include <string>

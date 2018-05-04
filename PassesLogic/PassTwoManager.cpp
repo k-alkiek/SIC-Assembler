@@ -1,7 +1,7 @@
 #include "PassTwoManager.h"
-#include "CommandIdentifier.h"
-#include "HexaConverter.h"
-#include "OperationInfo.h"
+#include "../CommandsAndUtilities/CommandIdentifier.h"
+#include "../ConvertersAndEvaluators/HexaConverter.h"
+#include "../DTOs/OperationInfo.h"
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
     vector<Command> commands = primaryData.commands;

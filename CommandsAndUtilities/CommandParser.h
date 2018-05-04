@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "Command.h"
-#include "ErrorMsg.h"
+#include "../DTOs/ErrorMsg.h"
 
 using namespace std;
 
