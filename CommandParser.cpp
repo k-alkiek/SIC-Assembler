@@ -123,7 +123,7 @@ string CommandParser::validateLineSyntax(Command line){
 
 Command CommandParser::extractData(string line) {
     CommandIdentifier commandIdentifier;
-    Command commandData; // the vector that will e returned
+    Command commandData; // the vector that will be returned
     std::vector<std::string> splitedCommand; // vector helps making processing
     istringstream splitedData(line);
     do {
@@ -265,7 +265,7 @@ string CommandParser::validateRes(Command command) {
 
     for(int i = 0 ; i < operand.length() ; i++)
         if(!isdigit(operand.at(i)))
-            return "Not a diigit";
+            return "Not a digit";
 
     return " ";
 }
