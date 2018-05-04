@@ -16,11 +16,13 @@ private:
     string completeObjCodeFormat2(int uncompletedObjCode, vector<string> operands);
     string completeObjCodeFormat3(int uncompletedObjCode,vector<string> operands);
     string completeObjCodeFormat4(int uncompletedObjCode,vector<string> operands,PrimaryData primaryData);
-    vector<int> getFlagsCombination(string operand, int format);
+    vector<int> getFlagsCombination(vector<string> operands, int format, bool PCRelative);
     int getDisplacement();
 
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
+
+    int getdispRange();
 };
 
 

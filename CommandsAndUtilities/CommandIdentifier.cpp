@@ -2,7 +2,7 @@
 #include "CommandIdentifier.h"
 
 CommandIdentifier::CommandIdentifier(){
-//    OperationInfo(code, hasOperand, numberOfOperands)
+//    OperationInfo(code, hasOperand, numberOfOperands, format)
     opTable.insert(pair <string, OperationInfo> ("ADD", OperationInfo("18",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("ADDF", OperationInfo("58",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("ADDR", OperationInfo("90",true,2,2)));
