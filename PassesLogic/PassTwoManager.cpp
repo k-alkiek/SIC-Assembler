@@ -1,52 +1,46 @@
 #include "PassTwoManager.h"
 #include "../CommandsAndUtilities/CommandIdentifier.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
-#include "../DTOs/OperationInfo.h"
+
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
     vector<Command> commands = primaryData.commands;
     Command cursor ;//= commands[0];
     vector<string> objectCode;
 
-    /*if (cursor.mnemonic == "Start") {
-        objectCode.push_back("H");
-        if (cursor.label != "") { //hwa yenfa3 mayeb2ash fei label?! ====>  La2  mayenfa3sh
-            objectCode.push_back(cursor.label);
-        } else {
-            //error program name not found
-        }
-        objectCode.push_back(primaryData.startingAddress);
-        objectCode.push_back(primaryData.programLength);
-    } else {
-        //error not found
-    }
-     objectCode.push_back("T");*/
      cursor = commands[1];
      int itr = 1;
      while (cursor.mnemonic != "END") {
          objectCode.push_back(getObjectCode(cursor,primaryData));
          cursor = commands[++itr];
      }
-     //objectCode.push_back("E");
-     //objectCode.push_back(primaryData.startingAddress); //first excutable instruction
 
 }
+
+//TODO ta7abeesh special cases
+//TODO check for errors
+//TODO ne7sseb amaken Modification records
 
 string PassTwoManager::getObjectCode(Command cursor,PrimaryData primaryData) {
     CommandIdentifier opTable;
     HexaConverter hexaConverter;
-    OperationInfo operationInfo = opTable.getInfo(cursor);
-    if (cursor.mnemonic == "BYTE" || cursor.mnemonic == "WORD") {
+    if (cursor.mnemonic == "WORD") {
+        // WORD 30
+        //
         //convert constant to object code
+    } else if(cursor.mnemonic == "BYTE") {
+
     } else if (opTable.isInTable(cursor.mnemonic)) {
 
+        OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic);
         int commandObjCode = hexaConverter.hexToDecimal(operationInfo.code);
         int format = operationInfo.format;
+
         if(format == 1){
             return hexaConverter.decimalToHex(commandObjCode);
         } else if(format == 2){
             return completeObjCodeFormat2(commandObjCode,cursor.operands);
-        } else if(format == 3){
+        } else if(format == 3 && cursor.operands[0].front() != '+'){
             return completeObjCodeFormat3(commandObjCode,cursor.operands);
         } else{
             return completeObjCodeFormat4(commandObjCode,cursor.operands,primaryData);
@@ -75,7 +69,7 @@ string PassTwoManager::getObjectCode(Command cursor,PrimaryData primaryData) {
 string PassTwoManager::completeObjCodeFormat2(int uncompletedObjCode, vector<string> operands){
     HexaConverter hexaConverter;
     int registerCode = getRegisterNumber(operands[0]);
-    if(operands.length != 1) {
+    if(operands.size() != 1) {
         registerCode = registerCode << 4;
         registerCode = registerCode | getRegisterNumber(operands[1]);
         uncompletedObjCode = uncompletedObjCode << 8;
@@ -87,28 +81,65 @@ string PassTwoManager::completeObjCodeFormat2(int uncompletedObjCode, vector<str
 }
 string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode,vector<string> operands){
     HexaConverter hexaConverter;
-    vector<int> nixbpe = getflagsCombination(operands[0],3);// give me ni separated from xbpe
-    int displacement = getdisplacement();
+    int displacement = getDisplacement();
+    //(displacement < getdispRange()) boolean expression to indicate Base or PC relative ///TODO not correct
+    vector<int> nixbpe = getFlagsCombination(operands,3,(displacement < getdispRange()));// give me ni separated from xbpe
     int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
     completedObjCode = (completedObjCode << 12) | displacement;
     return hexaConverter.decimalToHex(completedObjCode);
 }
 string PassTwoManager::completeObjCodeFormat4(int uncompletedObjCode,vector<string> operands,PrimaryData primaryData){
     HexaConverter hexaConverter;
-    vector<int> nixbpe = getflagsCombination(operands[0],4);// give me ni separated from xbpe
+    vector<int> nixbpe = getFlagsCombination(operands,4, false);// give me ni separated from xbpe
     string address = primaryData.symbolTable.at(operands[0]).address;
     int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
     completedObjCode = (completedObjCode << 20) | completedObjCode;
     return hexaConverter.decimalToHex(completedObjCode);
 }
 
-vector<int> PassTwoManager::getflagsCombination(string operand, int format){
-    //TODO your part of code 😀😀😀😀
-    if(format == 3){
-
-    } else{
-
+vector<int> PassTwoManager::getFlagsCombination(vector<string> operands, int format, bool PCRelative){
+    int ni = 0;
+    int xbpe = 0;
+    if (operands.size() > 2) {
+        //ERROR too many operands //mesh 3arfa handelled wala la2?!!
     }
+    if (operands.size() == 2) {
+        if (operands[1] == "X") {
+            xbpe = 1;       //indexing
+        } else {
+            //ERROR wrong second operand
+        }
+    }
+    if(format == 3){
+        if (operands[0].front() == '#') {
+            if (xbpe = 1) {
+                //ERROR can't have immediate with X
+            }
+            ni = 1;             //01 immediate
+        } else if (operands[0].front() == '@') {
+            if (xbpe = 1) {
+                //ERROR can't have indirect with X
+            }
+            ni = 1;
+            ni = (ni << 1);     //10 indirect
+        } else {
+            ni = 1;
+            ni = (ni << 1) | 1; //11 simple addressing
+        }
+        if (PCRelative) {
+            xbpe = ((xbpe << 2) | 1 ) << 1;
+        } else {
+            xbpe = ((xbpe << 1) | 1 ) << 2;
+        }
+
+    } else { //format 4
+        ni = 1;
+        ni = (ni << 1) | 1;
+        xbpe = (xbpe << 3) | 1;
+    }
+    vector<int> returnedValue;
+    returnedValue.push_back(ni);
+    returnedValue.push_back(xbpe);
 }
 
 int PassTwoManager::getRegisterNumber(string registerr){
@@ -133,5 +164,17 @@ int PassTwoManager::getRegisterNumber(string registerr){
     } else{
         return 10;
     }
+}
+
+int PassTwoManager::getdispRange() { //TODO not correct
+    int x = 1;
+    x = (x << 3 | x << 2 | x << 1 | 1);
+    return x;
+}
+
+int getDisplacement() {
+
+    //TODO implementation
+    return 0;
 }
 
