@@ -1,6 +1,6 @@
 #include <iostream>
 #include <map>
-#include "OperationInfo.h"
+#include "../DTOs/OperationInfo.h"
 
 using namespace std;
 class CommandIdentifier {

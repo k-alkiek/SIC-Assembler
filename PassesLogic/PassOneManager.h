@@ -1,10 +1,10 @@
 #include <iostream>
 #include <map>
-#include "FileReader.h"
-#include "PrimaryData.h"
-#include "labelInfo.h"
-#include "ErrorMsg.h"
-#include "HexaConverter.h"
+#include "../FileManipulators/FileReader.h"
+#include "../DTOs/PrimaryData.h"
+#include "../DTOs/labelInfo.h"
+#include "../DTOs/ErrorMsg.h"
+#include "../ConvertersAndEvaluators/HexaConverter.h"
 
 using namespace std;
 class PassOneManager {

@@ -1,5 +1,5 @@
 #include "FileWriter.h"
-#include "HexaConverter.h"
+#include "../ConvertersAndEvaluators/HexaConverter.h"
 
 void FileWriter::writeToFile(string fileName, PrimaryData data) {
     ofstream file;
@@ -96,7 +96,8 @@ void FileWriter::writeToFile(string fileName, PrimaryData data) {
 
 
 
-void FileWriter::generateObjectCodeFile(string fileName, vector<string> objectCode, PrimaryData data) {
+void FileWriter::generateObjectCodeFile(string fileName , vector<string> objectCode,
+                                        PrimaryData data,vector<ModificationRecord> modifications){
     HexaConverter hexaConverter;
     string result;
     result = "H";
@@ -136,12 +137,40 @@ void FileWriter::generateObjectCodeFile(string fileName, vector<string> objectCo
         }
         textRecord = "T" + hexaConverter.decimalToHex(currentAddress);
         currentAddress = currentAddress+length/2;
+        if(hexaConverter.decimalToHex(length/2).size() == 1)
+            textRecord += "0";
         textRecord += hexaConverter.decimalToHex(length/2)+tmpRecord;
         tmpRecord = "";
         result += textRecord +"\n";
 
         length = 0;
     }
+
+    for(vector<ModificationRecord>::iterator it = modifications.begin();
+            it != modifications.end();++it){
+        result += "M";
+        string length = "05";
+        ModificationRecord* record = &(*it);
+        (*it).address = data.commands.at((*it).index).address;
+        if(objectCode.at((*it).index).length() == 8) {
+            (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 3);
+        } else {
+            (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
+        }
+        tmp = (*it).address.length();
+        while(tmp < 6){
+            result += "0";
+            tmp++;
+        }
+        result += (*it).address + length;
+        if((*it).labelToBeAdded != ""){
+            result += (*it).operation + (*it).labelToBeAdded +"\n";
+        } else {
+            result += "+" + data.commands[0].label +"\n";
+        }
+
+    }
+
     result += "E";
     tmp = data.startingAddress.length();
     while(tmp < 6){

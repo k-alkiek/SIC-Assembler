@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "PassOneManager.h"
-#include "ErrorMsg.h"
+#include "../DTOs/ErrorMsg.h"
 
 PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;

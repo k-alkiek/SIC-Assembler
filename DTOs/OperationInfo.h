@@ -1,3 +1,10 @@
+
+
+
+#ifndef ASSEMBLER_OPERATIONINFO_H
+#define ASSEMBLER_OPERATIONINFO_H
+
+
 #include <iostream>
 using namespace std;
 
@@ -10,3 +17,4 @@ public:
     OperationInfo(string code, bool hasOperand, int numberOfOperands, int format);
 };
 
+#endif
