@@ -8,10 +8,15 @@ ExpressionEvaluator::ExpressionEvaluator(map<string, labelInfo> symtable, HexaCo
     this->converter = converter;
 }
 
-OperandHolder ExpressionEvaluator::evaluateExpression(string expression) {
+OperandHolder ExpressionEvaluator::evaluateExpression(string expression, string locctr) {
 
     if(expression.length() == 0)
         __throw_runtime_error("Empty expression");
+
+    labelInfo locctr_label;
+    locctr_label.type = "relative";
+    locctr_label.address = locctr;
+    this->symtable.insert(pair<string, labelInfo>("LOCCTR",locctr_label));
 
     vector<string> labels = {};
     vector<char> operators = {};
@@ -36,8 +41,14 @@ void ExpressionEvaluator::parse_expression(vector<string>* labels, vector<char>*
         if(isOperator(c))
         {
             if(label_container.empty()) // operator at the beginning of expression
-                __throw_runtime_error("Operator at the beginning of expression");
-            operators->push_back(c);
+            {
+                if(c == '*')
+                    label_container == "LOCCTR";
+                else
+                    __throw_runtime_error("Operator Problem in Expression");
+            }
+            if(label_container != "LOCCTR")
+                operators->push_back(c);
             labels->push_back(label_container);
             label_container = "";
         }

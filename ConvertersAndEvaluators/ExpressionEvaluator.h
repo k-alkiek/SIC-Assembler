@@ -12,7 +12,7 @@ public:
     HexaConverter converter;
 
     ExpressionEvaluator(map<string,labelInfo> symtable, HexaConverter converter);
-    OperandHolder evaluateExpression(string expression); // throws exception if illegal
+    OperandHolder evaluateExpression(string expression, string locctr); // throws exception if illegal
 
 private:
     bool isOperator(char c);
