@@ -3,17 +3,19 @@
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../DTOs/labelInfo.h"
-
+#include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 string locationCounter;
 map<string,labelInfo> symbolTable;
+HexaConverter hexaConverter;
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
     vector<Command> commands = primaryData.commands;
     Command cursor ;//= commands[0];
     vector<string> objectCode;
-     cursor = commands[1];
-     int itr = 1;
-     while (cursor.mnemonic != "END") {
+    cursor = commands[1];
+    int itr = 1;
+    symbolTable = primaryData.symbolTable;
+    while (cursor.mnemonic != "END") {
          objectCode.push_back(getObjectCode(cursor));
          cursor = commands[++itr];
          locationCounter = cursor.address;
@@ -21,14 +23,11 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
 }
 
-//TODO ta7abeesh special cases
 //TODO check for errors
 //TODO ne7sseb amaken Modification records
-//TODO format 2 need to be modified to handel one register
-
+//TODO handel format 4 just like format 3
 string PassTwoManager::getObjectCode(Command cursor) {
     CommandIdentifier opTable;
-    HexaConverter hexaConverter;
     if (cursor.mnemonic == "WORD") {
         // WORD 30
         //
@@ -86,24 +85,59 @@ string PassTwoManager::completeObjCodeFormat2(int uncompletedObjCode, vector<str
 }
 
 string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode,vector<string> operands){
-    HexaConverter hexaConverter;
-    labelInfo label = symbolTable.at(operands[0]);
-    vector<int> results = getDisplacement(label.address, locationCounter);
-    int isPC = results[0];
-    int displacement = results[1];
-    //(displacement < getdispRange()) boolean expression to indicate Base or PC relative ///TODO not correct //not needed anymore
-    vector<int> nixbpe = getFlagsCombination(operands,3,isPC);// give me ni separated from xbpe
-    int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-    completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
-    return hexaConverter.decimalToHex(completedObjCode);
+    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
+    OperandHolder operandHolder("",0);
+    labelInfo label;
+    int displacement;
+    int isPC;
+    int flag = 0;
+    vector<int> results;
+    if(operands.size() != 0) {
+        bool isAnExpression = isExpression(operands[0]);
+        string address;
+        if(isAnExpression){
+            operandHolder = expressionEvaluator.evaluateExpression(operands[0],locationCounter);
+            address = operandHolder.value;
+        } else if(operands[0][0] != '#' || operands[0][0] != '@'){
+            label = symbolTable.at(operands[0]);
+            address = label.address;
+        } else if((operands[0][0] == '#' || operands[0][0] == '@')&& symbolTable.find(operands[0].substr(1,operands[0].length()-1)) == symbolTable.end()){
+            label = symbolTable.at(operands[0].substr(1,operands[0].length()-1));
+            address = label.address;
+        }else if(operands[0][0] == '#'&& symbolTable.find(operands[0].substr(1,operands[0].length()-1)) != symbolTable.end()){
+            displacement = stoi(operands[0].substr(1,operands[0].length()-1));
+            if(displacement <= 2047){
+                isPC = 1;
+            } else if (displacement > 2047 && displacement <= 4095){
+                isPC = 0;
+            } else {
+                //TODO ERROR
+            }
+
+            flag ++;
+        } else{
+            //TODO ERROR ta2reban
+        }
+        if(flag == 0) {
+            results = getSimpleDisplacement(address, locationCounter);
+            isPC = results[0];
+            displacement = results[1];
+        }
+        vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
+        int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
+        completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
+        return hexaConverter.decimalToHex(completedObjCode);
+    } else{
+        //TODO RSUB "ta2reban mesh 7ane3melha"
+    }
 }
 
 string PassTwoManager::completeObjCodeFormat4(int uncompletedObjCode,vector<string> operands){
     HexaConverter hexaConverter;
     vector<int> nixbpe = getFlagsCombination(operands,4, false);// give me ni separated from xbpe
     string address = symbolTable.at(operands[0]).address;
-    int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-    completedObjCode = (completedObjCode << 20) | ((completedObjCode << 12) >> 12);
+    unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
+    completedObjCode = (completedObjCode << 20) | ((completedObjCode << 12) >> 12);//TODO its not completedObjCode after or its TA in its all cases must be handeled
     return hexaConverter.decimalToHex(completedObjCode);
 }
 
@@ -176,7 +210,7 @@ int PassTwoManager::getRegisterNumber(string registerr){
     }
 }
 
-vector<int> PassTwoManager::getDisplacement(string TA, string progCounter) {
+vector<int> PassTwoManager::getSimpleDisplacement(string TA, string progCounter) {
     HexaConverter hexaConverter;
     vector<int> results;
     int displacement = 0;
@@ -184,9 +218,11 @@ vector<int> PassTwoManager::getDisplacement(string TA, string progCounter) {
     int targetAdd = hexaConverter.hexToDecimal(TA);
     int programCount = hexaConverter.hexToDecimal(progCounter);
     displacement = targetAdd - programCount;
-    if(displacement > 4096){
+    if(displacement > 2047){
         isPC = 0;
     } else if(displacement < - 2048){
+        //error
+    } else if(displacement > 4095){
         //error
     }
     results.push_back(isPC);
@@ -199,3 +235,11 @@ vector<int> PassTwoManager::getDisplacement(string TA, string progCounter) {
     x = (x << 3 | x << 2 | x << 1 | 1);
     return x;
 }*/
+
+bool PassTwoManager::isExpression(string operand){
+    if(operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
+            operand.find('*') != std::string::npos || operand.find('/') != std::string::npos){
+        return true;
+    }
+    return false;
+}

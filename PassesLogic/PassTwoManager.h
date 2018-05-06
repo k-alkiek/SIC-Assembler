@@ -17,7 +17,8 @@ private:
     string completeObjCodeFormat3(int uncompletedObjCode,vector<string> operands);
     string completeObjCodeFormat4(int uncompletedObjCode,vector<string> operands);
     vector<int> getFlagsCombination(vector<string> operands, int format, int PCRelative);
-    vector<int> getDisplacement(string TA, string progCounter);
+    vector<int> getSimpleDisplacement(string TA, string progCounter);
+    bool isExpression(string operand);
 
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
