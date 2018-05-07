@@ -28,10 +28,15 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 //TODO handel format 4 just like format 3
 string PassTwoManager::getObjectCode(Command cursor) {
     CommandIdentifier opTable;
-    if (cursor.mnemonic == "WORD") { //check if it's right
-        hexaConverter.decimalToHex(stoi(cursor.mnemonic));
-    } else if (cursor.mnemonic == "BYTE") { //check if it's right
-        string operand = cursor.mnemonic;
+    if (cursor.mnemonic == "WORD") {
+        hexaConverter.decimalToHex(stoi(cursor.mnemonic)); //TODO more than one word then loop
+    } else if (cursor.mnemonic == "BYTE") {
+        string operand;
+        if (cursor.operands.size() != 1) {
+            // TODO error
+        } else {
+            operand = cursor.operands[0];
+        }
         if (operand.front() == 'X') {
             return operand.substr(2, operand.length() - 2);
         } else if (operand.front() == 'C') {
@@ -76,8 +81,6 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
     OperandHolder operandHolder("", 0);
     labelInfo label;
     int displacement;
-//    int isPC;
-//    int flag = 0;
     bool isPC;
     bool flag = false;
     vector<int> results;
@@ -87,7 +90,7 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
         if (isAnExpression) {
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
             address = operandHolder.value;
-        } else if (operands[0][0] != '#' || operands[0][0] != '@') { //&&
+        } else if (operands[0][0] != '#' && operands[0][0] != '@') {
             label = symbolTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
@@ -105,14 +108,14 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
                 //TODO ERROR
             }
 
-            flag = true; //flag++;
+            flag = true;
 
         } else {
             //TODO ERROR ta2reban
         }
-        if (!flag) { //if (flag == 0) {
+        if (!flag) {
             results = getSimpleDisplacement(address, locationCounter);
-            if (results[0] == 1) {  // isPC = results[0];
+            if (results[0] == 1) {
                 isPC = true;
             } else {
                 isPC = false;
