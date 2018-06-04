@@ -158,3 +158,8 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
     }
 
 }
+bool PassTwoManager::checkAddProgName(string expression) {
+    //TODO implement checking if adding program name is needed (if the PROG's labels in expression are odd return true)
+    //LISTA - ENDA is considered a pair, LISTA + ENDA isn't pair and add PROGA twice
+    return false;
+}
