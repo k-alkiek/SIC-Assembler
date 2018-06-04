@@ -151,7 +151,7 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<string> objectC
         result += "M";
 //        string length = "05";
         ModificationRecord* record = &(*it);
-        (*it).address = data.commands.at((*it).index).address;
+//        (*it).address = data.commands.at((*it).index).address;
         if(objectCode.at((*it).index).length() == 8) {
             (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 3);
         } else {
@@ -162,7 +162,7 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<string> objectC
             result += "0";
             tmp++;
         }
-//        result += (*it).address + length;(*it).labelToBeAdded
+//        result += (*it).address + length;
         result += (*it).address + (*it).halfBytes;
         if((*it).labelToBeAdded != ""){
             result += (*it).operation + (*it).labelToBeAdded +"\n";
