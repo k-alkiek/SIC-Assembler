@@ -13,21 +13,15 @@ vector<vector<string>> DefRecord;
 vector<ModificationRecord> modificationRecords;
 string progName;
 
-//TODO Sarah's check format 3, 4
-
 //TODO handle base counter
 //TODO if operands contains *
-//TODO abdelrahman 7aye3mel write ll refRecords record lama yegeilo
-//TODO inValid expressions for extRef without '+'
-//TODO inValid number of operands (n>1) if format 1,3,4 (format 2 takes 2 operands)
-
 //TODO EQU --> must check modification records too
 //TODO LTORG and litteral pools
 //TODO ORG, BASE, NOBASE, RSUB
 //TODO handel L erros
 
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
-    ObjectCodeCalculation objectCodeCalculator; //TODO check if sending parameters is correct (locationCounter, symbolTable)
+    ObjectCodeCalculation objectCodeCalculator;
     map<string, string> extDefinitions;
     vector<string> definitions; // TODO modify it to be vector from primary data
     vector<string> references; // TODO modify it to be vector from primary data
@@ -91,8 +85,6 @@ void PassTwoManager::setDefRecord(map<string, string> defRecordsUnsorted, vector
  */
 
 void PassTwoManager::evaluateModificationRecordExpression(bool constant,int itr, string expression, vector<string> extReferences, string addressInput) {
-    //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
-    //TODO Gamal check for valid expressions for extRef and labels (N.B. extDef are labels in the program)
     string address;
     string halfBytes;
     if (!constant) {
@@ -165,10 +157,4 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
         evaluateModificationRecordExpression(true,itr, cursor.operands[0], references, cursor.address);
     }
 
-}
-
-bool PassTwoManager::checkAddProgName(string expression) {
-    //TODO implement checking if adding program name is needed (if the PROG's labels in expression are odd return true)
-    //LISTA - ENDA is considered a pair, LISTA + ENDA isn't pair and add PROGA twice
-    return false;
 }
