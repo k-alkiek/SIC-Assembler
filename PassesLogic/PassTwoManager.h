@@ -4,28 +4,23 @@
 #include <iostream>
 #include <vector>
 #include "../DTOs/PrimaryData.h"
+#include "../DTOs/ModificationRecord.h"
 
 using namespace std;
 
 class PassTwoManager {
 
 private:
-    vector<string> objectCode;
-    string getObjectCode(Command command);
-    int getRegisterNumber(string registerr);
-    string completeObjCodeFormat2(int uncompletedObjCode, vector<string> operands);
-    string completeObjCodeFormat3(int uncompletedObjCode,vector<string> operands);
-    string completeObjCodeFormat4(int uncompletedObjCode,vector<string> operands);
-    vector<int> getFlagsCombination(vector<string> operands, int format, bool PCRelative);
-    vector<int> getSimpleDisplacement(string TA, string progCounter);
-    bool isExpression(string operand);
+    void setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions);
+    bool containsExternalReference(string operands, vector<string> definitions);
+    void evaluateModificationRecordExpression(bool constant, string expression, vector<string> extReferences, string addressInput);
+    void addModificationRecord(Command cursor, int itr, vector<string> definitions,
+                               vector<ModificationRecord> modificationRecords, vector<string> references);
 
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
 
-    int getdispRange();
-
-    string convertCToObjCode(basic_string<char, char_traits<char>, allocator<char>> basic_string);
+    bool checkAddProgName(string basic_string);
 };
 
 

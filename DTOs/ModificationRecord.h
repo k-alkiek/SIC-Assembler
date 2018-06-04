@@ -10,5 +10,6 @@ public:
     string address;
     string labelToBeAdded;
     string operation;
+    string halfBytes;
 };
 #endif

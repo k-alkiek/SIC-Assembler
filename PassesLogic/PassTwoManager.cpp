@@ -2,280 +2,172 @@
 #include "../CommandsAndUtilities/CommandIdentifier.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
-#include "../DTOs/ModificationRecord.h"
+#include "../ObjectCodeAndModificationRecord/ObjectCodeCalculation.h"
 #include <cmath>
 
 
 string locationCounter;
 map<string, labelInfo> symbolTable;
 HexaConverter hexaConverter;
+vector<vector<string>> DefRecord;
+vector<ModificationRecord> modificationRecords;
+string progName;
+
+//TODO Sarah's check format 3, 4
+
+//TODO handle base counter
+//TODO if operands contains *
+//TODO abdelrahman 7aye3mel write ll refRecords record lama yegeilo
+//TODO inValid expressions for extRef without '+'
+//TODO inValid number of operands (n>1) if format 1,3,4 (format 2 takes 2 operands)
+
+//TODO EQU --> must check modification records too
+//TODO LTORG and litteral pools
+//TODO ORG, BASE, NOBASE, RSUB
+//TODO handel L erros
 
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
-
+    ObjectCodeCalculation objectCodeCalculator; //TODO check if sending parameters is correct (locationCounter, symbolTable)
+    map<string, string> extDefinitions;
+    vector<string> definitions; // TODO modify it to be vector from primary data
+    vector<string> references; // TODO modify it to be vector from primary data
+    //extDefinitions = PrimaryData.getExtDef()
+    //extReferences = PrimaryData.getExtRef()
+    progName = primaryData.commands[0].label;  // PROG name set at index 0
     vector<string> textRecord;
-    vector<ModificationRecord> modificationRecords;
+    map<string, string> defRecordUnsorted;
+
     Command cursor;
     vector<Command> commands = primaryData.commands;
     cursor = commands[1];
+    locationCounter = primaryData.startingAddress;
     int itr = 1;
     symbolTable = primaryData.symbolTable;
     while (cursor.mnemonic != "END") {
-        if(cursor.mnemonic[0] == '+'){ // TODO if operands contains *
-            ModificationRecord modificationRecord;
-            modificationRecord.index = itr;
-            modificationRecord.labelToBeAdded = "START";
-            modificationRecord.operation = "+";
-            modificationRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) +1));
+        if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
+            vector<string> dRec;
+            defRecordUnsorted.insert(cursor.label, cursor.address);
         }
-        //TODO modification record of external difinition
-        textRecord.push_back(getObjectCode(cursor));
+        addModificationRecord(cursor, itr, definitions, modificationRecords, references);
+
+        locationCounter = commands[itr + 1].address;
+        textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,locationCounter,symbolTable));
         cursor = commands[++itr];
-        locationCounter = cursor.address;
     }
+    setDefRecord(defRecordUnsorted, definitions);
 }
 
-//TODO EQU, ORG, BASE, NOBASE, RSUB
-//TODO ne7sseb amaken Modification records
-//TODO handel L erros
-string PassTwoManager::getObjectCode(Command cursor) {
-    CommandIdentifier opTable;
-    if (cursor.mnemonic == "WORD") {
-        string obcode = "";
-        for(int i = 0; i < cursor.operands.size(); i++) {
-            obcode += hexaConverter.decimalToHex(stoi(cursor.operands[i]));
+/////////////////////Modification Records////////////////////////////////////
+
+bool PassTwoManager::containsExternalReference (string expression, vector<string> extReferences) {
+    for (int i = 0; i < extReferences.size(); i++) {
+        if (expression.find(extReferences[i]) != string::npos) {
+            return true;
         }
-        return obcode;
-    } else if (cursor.mnemonic == "BYTE") {
-        string operand;
-        if (cursor.operands.size() != 1) {
-            // TODO error
-        } else {
-            operand = cursor.operands[0];
-        }
-        if (operand.front() == 'X') {
-            return operand.substr(2, operand.length() - 2);
-        } else if (operand.front() == 'C') {
-            return convertCToObjCode(operand.substr(2, operand.length() - 2));
-        } else {
-            //TODO Error
-        }
-    } else if (opTable.isInTable(cursor.mnemonic)) {
-
-        OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic);
-        int commandObjCode = hexaConverter.hexToDecimal(operationInfo.code);
-        int format = operationInfo.format;
-
-        if (format == 1) {
-            return hexaConverter.decimalToHex(commandObjCode);
-        } else if (format == 2) {
-            return completeObjCodeFormat2(commandObjCode, cursor.operands);
-        } else if (format == 3 && cursor.operands[0].front() != '+') {
-            return completeObjCodeFormat3(commandObjCode, cursor.operands);
-        } else {
-            return completeObjCodeFormat4(commandObjCode, cursor.operands);
-        }
-    }
-}
-
-string PassTwoManager::completeObjCodeFormat2(int uncompletedObjCode, vector<string> operands) {
-    int registerCode = getRegisterNumber(operands[0]);
-    if (operands.size() != 1) {
-        registerCode = registerCode << 4;
-        registerCode = registerCode | getRegisterNumber(operands[1]);
-        uncompletedObjCode = uncompletedObjCode << 8;
-    } else {
-        uncompletedObjCode = uncompletedObjCode << 4;
-    }
-    uncompletedObjCode = uncompletedObjCode | registerCode;
-    return hexaConverter.decimalToHex(uncompletedObjCode);
-}
-
-string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands) {
-    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
-    OperandHolder operandHolder("", 0);
-    labelInfo label;
-    int displacement;
-    bool isPC;
-    bool flag = false;
-    vector<int> results;
-    if (operands.size() != 0) {
-        bool isAnExpression = isExpression(operands[0]);
-        string address;
-        if (isAnExpression) {
-            operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
-            address = operandHolder.value;
-        } else if (operands[0][0] != '#' && operands[0][0] != '@') {
-            label = symbolTable.at(operands[0]);
-            address = label.address;
-        } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
-            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
-            address = label.address;
-        } else if ((operands[0][0] == '#' || operands[0][0] == '@') && symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                                            symbolTable.end()) {
-            displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
-            if (displacement <= 2047) {
-                isPC = true;
-            } else if (displacement > 2047 && displacement <= 4095) {
-                isPC = false;
-            } else {
-                //TODO ERROR
-            }
-
-            flag = true;
-
-        } else {
-            //TODO ERROR ta2reban
-        }
-        if (!flag) {
-            results = getSimpleDisplacement(address, locationCounter);
-            if (results[0] == 1) {
-                isPC = true;
-            } else {
-                isPC = false;
-            }
-            displacement = results[1];
-        }
-        vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
-        unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-        completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
-        return hexaConverter.decimalToHex(completedObjCode);
-    } else {
-        //TODO RSUB "ta2reban mesh 7ane3melha" return opcode only ex: 1027 RSUB 4C0000
-    }
-}
-
-string PassTwoManager::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
-    vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
-    labelInfo label;
-    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
-    OperandHolder operandHolder("", 0);
-    string address;
-    if (operands.size() != 0) {
-        bool isAnExpression = isExpression(operands[0]);
-        string address;
-        if (isAnExpression) {
-            operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
-            address = operandHolder.value;
-        }else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
-            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
-            address = label.address;
-        }else if ((operands[0][0] == '#' || operands[0][0] == '@') && symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                                                                      symbolTable.end()) {
-            address = stoi(operands[0].substr(1, operands[0].length() - 1));
-            if(stoi(address) > pow(2,20)){
-                //TODO Error
-            }
-        } else {
-            address = symbolTable.at(operands[0]).address;
-        }
-        unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
-                                        nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
-        completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        return hexaConverter.decimalToHex(completedObjCode);
-    } else {
-        //TODO RSUB
-    }
-}
-
-vector<int> PassTwoManager::getFlagsCombination(vector<string> operands, int format, bool PCRelative) {
-    int ni = 0;
-    int xbpe = 0;
-    if (operands.size() > 2) {
-        //TODO ERROR too many operands //mesh 3arfa handelled wala la2?!!
-    }
-    if (operands.size() == 2) {
-        if (operands[1] == "X") {
-            xbpe = 8;       //indexing
-        } else {
-            //TODO ERROR wrong second operand
-        }
-    }
-    if (format == 3) {
-        if (operands[0].front() == '#') {
-            if (xbpe = 8) {
-                //TODO ERROR can't have immediate with X
-            }
-            ni = 1;             //01 immediate
-        } else if (operands[0].front() == '@') {
-            if (xbpe = 8) {
-                //TODO ERROR can't have indirect with X
-            }
-            ni = 2;  //10 indirect
-        } else {
-            ni = 3; //11 simple addressing
-        }
-        if (PCRelative) {
-            xbpe = xbpe | 2; //pc relative
-        } else {
-            xbpe = xbpe | 4; //base relative
-        }
-
-    } else { //format 4
-        ni = 3;
-        xbpe = xbpe | 1;
-    }
-    vector<int> returnedValue;
-    returnedValue.push_back(ni);
-    returnedValue.push_back(xbpe);
-}
-
-int PassTwoManager::getRegisterNumber(string registerr) {
-    if (registerr.compare("A") == 0) {
-        return 0;
-    } else if (registerr.compare("X") == 0) {
-        return 1;
-    } else if (registerr.compare("L") == 0) {
-        return 2;
-    } else if (registerr.compare("B") == 0) {
-        return 3;
-    } else if (registerr.compare("S") == 0) {
-        return 4;
-    } else if (registerr.compare("T") == 0) {
-        return 5;
-    } else if (registerr.compare("F") == 0) {
-        return 6;
-    } else if (registerr.compare("PC") == 0) {
-        return 8;
-    } else if (registerr.compare("SW") == 0) {
-        return 9;
-    } else {
-        return 10;
-    }
-}
-
-vector<int> PassTwoManager::getSimpleDisplacement(string TA, string progCounter) {
-    vector<int> results;
-    int displacement = 0;
-    int isPC = 1;
-    int targetAdd = hexaConverter.hexToDecimal(TA);
-    int programCount = hexaConverter.hexToDecimal(progCounter);
-    displacement = targetAdd - programCount;
-    if (displacement > 2047) {
-        isPC = 0;
-    } else if (displacement < -2048) {
-        //TODO Error
-    } else if (displacement > 4095) {
-        //TODO Error
-    }
-    results.push_back(isPC);
-    results.push_back(displacement);
-    return results;
-}
-
-bool PassTwoManager::isExpression(string operand) {
-    if (operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
-        operand.find('*') != std::string::npos || operand.find('/') != std::string::npos) {
-        return true;
     }
     return false;
 }
 
-string PassTwoManager::convertCToObjCode(string str) {
-    string asciiString = "";
-    for (int i=0; i < str.length();i++) {
-        asciiString += hexaConverter.decimalToHex(str[i]);
+void PassTwoManager::setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions) {
+    for (int i = 0; i < definitions.size(); i++) {
+        if (defRecordsUnsorted.find(definitions[i]) != defRecordsUnsorted.end()) {
+            vector<string> rec;
+            rec.push_back(definitions[i]);
+            rec.push_back(defRecordsUnsorted.at(definitions[i]));
+            DefRecord.push_back(rec);
+        } else {
+            //TODO ERROR not all definitions are defined in the PROG
+        }
     }
-        return asciiString;
+}
+
+/**
+ * 1) check for ExtRef and add them sorted to the ModRecVector with their corresponding sign
+ *  -check it it's contant change halfBytes to ^06 else set it to ^05 (boolean variable)
+ * ///////
+ * 2) check relative wala absolute men 3adad ExtDef
+ *  -if odd add PROG name else do nth
+ *  -if so add prog Name in ModRec at the end of the record
+ */
+
+void PassTwoManager::evaluateModificationRecordExpression(bool constant, string expression, vector<string> extReferences, string addressInput) {
+    //TODO Gamal need to skip extReferences in evaluation and set expression to absolute
+    //TODO Gamal check for valid expressions for extRef and labels (N.B. extDef are labels in the program)
+    string address;
+    string halfBytes;
+    if (!constant) {
+        address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(address) + 1));
+        halfBytes = "05";
+    } else {
+        address = addressInput;
+        halfBytes = "06";
+    }
+    for (int i = 0; i < extReferences.size(); i++) { //get them then sort them //TODO momken 2a7ot nafs el reference mareteen?
+        if (expression.find(extReferences[i]) != string::npos) {
+            int position = expression.find(extReferences[i]);
+            ModificationRecord modRecord;
+            modRecord.index = 0; // TODO change it to the correct value
+            modRecord.labelToBeAdded = expression[i];
+            modRecord.address = address;
+            modRecord.halfBytes = halfBytes;
+            if (expression.at(position - 1) == '+') {
+                modRecord.operation = "+";
+            } else if (expression.at(position - 1) == '-') {
+                modRecord.operation = "-";
+            }
+            modificationRecords.push_back(modRecord);
+        }
+    }
+    if (checkAddProgName(expression)) {
+        ModificationRecord modRecord;
+        modRecord.index = 0; // TODO change it to the correct value
+        modRecord.labelToBeAdded = progName;
+        modRecord.operation = "+";
+        modRecord.address = address;
+        modRecord.halfBytes = halfBytes;
+        modificationRecords.push_back(modRecord);
+    }
+}
+
+void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<string> definitions,
+                                      vector<ModificationRecord> modificationRecords, vector<string> references) {
+    if (cursor.mnemonic[0] == '+' &&
+        !containsExternalReference(cursor.operands[0], definitions)) { // TODO check (handeled as all operands sizes are 1 or 2 format 2 only)
+        if (cursor.operands.size() == 1) {
+            ModificationRecord modRecord;
+            modRecord.index = itr; // 3ayzeno leeh?
+//            modRecord.labelToBeAdded = "START"; // modify to PROG name
+            modRecord.labelToBeAdded = progName; // PROG name set at index 0
+            modRecord.operation = "+";
+            modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
+            modRecord.halfBytes = "05"; //zawedto
+            modificationRecords.push_back(modRecord);
+        } else {
+            evaluateModificationRecordExpression(false, cursor.operands[0], references, cursor.address);
+        }
+    } else if (cursor.mnemonic == "WORD") {
+        //TODO implementation
+        /**
+         * 1) check if it contains an expression
+         * 2) check if it's a valid label
+         * 3) if it's an expression get it's value and store it in obcode while skipping extRef
+         * 4) add Modifications for extRef if it exists.
+         */
+        evaluateModificationRecordExpression(true, cursor.operands[0], references, cursor.address);
+    } else if (cursor.mnemonic == "BYTE") {
+        //TODO implementation
+        /**
+         * 1) check if it contains an expression
+         * 2) check if it's a valid label
+         * 3) if it's an expression get it's value and store it in obcode while skipping extRef
+         * 4) add Modifications for extRef if it exists.
+         */
+        evaluateModificationRecordExpression(true, cursor.operands[0], references, cursor.address);
+    }
+
+}
+
+bool PassTwoManager::checkAddProgName(string basic_string) {
+    //TODO implement checking if adding program name is needed (if the PROG's labels in expression are odd return true)
+    return false;
 }
