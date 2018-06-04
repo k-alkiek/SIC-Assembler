@@ -2,6 +2,9 @@
 #include "../CommandsAndUtilities/CommandIdentifier.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
+#include "../DTOs/ModificationRecord.h"
+#include <cmath>
+
 
 string locationCounter;
 map<string, labelInfo> symbolTable;
@@ -9,27 +12,39 @@ HexaConverter hexaConverter;
 
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
+    vector<string> textRecord;
+    vector<ModificationRecord> modificationRecords;
+    Command cursor;
     vector<Command> commands = primaryData.commands;
-    Command cursor;//= commands[0];
-    vector<string> objectCode;
     cursor = commands[1];
     int itr = 1;
     symbolTable = primaryData.symbolTable;
     while (cursor.mnemonic != "END") {
-        objectCode.push_back(getObjectCode(cursor));
+        if(cursor.mnemonic[0] == '+'){ // TODO if operands contains *
+            ModificationRecord modificationRecord;
+            modificationRecord.index = itr;
+            modificationRecord.labelToBeAdded = "START";
+            modificationRecord.operation = "+";
+            modificationRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) +1));
+        }
+        //TODO modification record of external difinition
+        textRecord.push_back(getObjectCode(cursor));
         cursor = commands[++itr];
         locationCounter = cursor.address;
     }
 }
 
 //TODO EQU, ORG, BASE, NOBASE, RSUB
-//TODO check for errors
 //TODO ne7sseb amaken Modification records
-//TODO handel format 4 just like format 3
+//TODO handel L erros
 string PassTwoManager::getObjectCode(Command cursor) {
     CommandIdentifier opTable;
     if (cursor.mnemonic == "WORD") {
-        hexaConverter.decimalToHex(stoi(cursor.mnemonic)); //TODO more than one word then loop
+        string obcode = "";
+        for(int i = 0; i < cursor.operands.size(); i++) {
+            obcode += hexaConverter.decimalToHex(stoi(cursor.operands[i]));
+        }
+        return obcode;
     } else if (cursor.mnemonic == "BYTE") {
         string operand;
         if (cursor.operands.size() != 1) {
@@ -63,7 +78,6 @@ string PassTwoManager::getObjectCode(Command cursor) {
 }
 
 string PassTwoManager::completeObjCodeFormat2(int uncompletedObjCode, vector<string> operands) {
-    HexaConverter hexaConverter;
     int registerCode = getRegisterNumber(operands[0]);
     if (operands.size() != 1) {
         registerCode = registerCode << 4;
@@ -94,11 +108,11 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
             label = symbolTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) == symbolTable.end()) {
-            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1)); //constant?
+                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
+            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
             address = label.address;
-        } else if (operands[0][0] == '#' && symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) !=
-                                            symbolTable.end()) { //leeh mafeeshwa7da zai @?
+        } else if ((operands[0][0] == '#' || operands[0][0] == '@') && symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
+                                            symbolTable.end()) {
             displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
             if (displacement <= 2047) {
                 isPC = true;
@@ -123,7 +137,7 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
             displacement = results[1];
         }
         vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
-        int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
+        unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
         return hexaConverter.decimalToHex(completedObjCode);
     } else {
@@ -132,25 +146,32 @@ string PassTwoManager::completeObjCodeFormat3(int uncompletedObjCode, vector<str
 }
 
 string PassTwoManager::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
-    HexaConverter hexaConverter;
     vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
-
+    labelInfo label;
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
     OperandHolder operandHolder("", 0);
     string address;
-    if (operands.size() != 0) { // mafeesh #,@
+    if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);
         string address;
         if (isAnExpression) {
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
             address = operandHolder.value;
+        }else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
+                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
+            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
+            address = label.address;
+        }else if ((operands[0][0] == '#' || operands[0][0] == '@') && symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
+                                                                      symbolTable.end()) {
+            address = stoi(operands[0].substr(1, operands[0].length() - 1));
+            if(stoi(address) > pow(2,20)){
+                //TODO Error
+            }
         } else {
             address = symbolTable.at(operands[0]).address;
         }
-//    unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-//    completedObjCode = (completedObjCode << 20) | ((completedObjCode << 12) >> 12);//TODO its not completedObjCode after or its TA in its all cases must be handeled
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
-                                        nixbpe[1]; //deleted first two bits from the right (enta sa7 :D)
+                                        nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
         return hexaConverter.decimalToHex(completedObjCode);
     } else {
@@ -225,7 +246,6 @@ int PassTwoManager::getRegisterNumber(string registerr) {
 }
 
 vector<int> PassTwoManager::getSimpleDisplacement(string TA, string progCounter) {
-    HexaConverter hexaConverter;
     vector<int> results;
     int displacement = 0;
     int isPC = 1;
@@ -253,6 +273,9 @@ bool PassTwoManager::isExpression(string operand) {
 }
 
 string PassTwoManager::convertCToObjCode(string str) {
-    //TODO implementation
-    return "";
+    string asciiString = "";
+    for (int i=0; i < str.length();i++) {
+        asciiString += hexaConverter.decimalToHex(str[i]);
+    }
+        return asciiString;
 }
