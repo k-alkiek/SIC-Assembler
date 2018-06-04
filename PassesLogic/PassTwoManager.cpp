@@ -90,8 +90,8 @@ void PassTwoManager::setDefRecord(map<string, string> defRecordsUnsorted, vector
  *  -if so add prog Name in ModRec at the end of the record
  */
 
-void PassTwoManager::evaluateModificationRecordExpression(bool constant, string expression, vector<string> extReferences, string addressInput) {
-    //TODO Gamal need to skip extReferences in evaluation and set expression to absolute
+void PassTwoManager::evaluateModificationRecordExpression(bool constant,int itr, string expression, vector<string> extReferences, string addressInput) {
+    //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
     //TODO Gamal check for valid expressions for extRef and labels (N.B. extDef are labels in the program)
     string address;
     string halfBytes;
@@ -102,11 +102,11 @@ void PassTwoManager::evaluateModificationRecordExpression(bool constant, string 
         address = addressInput;
         halfBytes = "06";
     }
-    for (int i = 0; i < extReferences.size(); i++) { //get them then sort them //TODO momken 2a7ot nafs el reference mareteen?
+    for (int i = 0; i < extReferences.size(); i++) { //get them then sort them //TODO momken 2a7ot nafs el reference mareteen? yes:(
         if (expression.find(extReferences[i]) != string::npos) {
             int position = expression.find(extReferences[i]);
             ModificationRecord modRecord;
-            modRecord.index = 0; // TODO change it to the correct value
+            modRecord.index = itr;
             modRecord.labelToBeAdded = expression[i];
             modRecord.address = address;
             modRecord.halfBytes = halfBytes;
@@ -118,9 +118,9 @@ void PassTwoManager::evaluateModificationRecordExpression(bool constant, string 
             modificationRecords.push_back(modRecord);
         }
     }
-    if (checkAddProgName(expression)) {
+    if (checkAddProgName(expression)) { //TODO check if we don't add it to contants
         ModificationRecord modRecord;
-        modRecord.index = 0; // TODO change it to the correct value
+        modRecord.index = itr;
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
         modRecord.address = address;
@@ -135,7 +135,7 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
         !containsExternalReference(cursor.operands[0], definitions)) { // TODO check (handeled as all operands sizes are 1 or 2 format 2 only)
         if (cursor.operands.size() == 1) {
             ModificationRecord modRecord;
-            modRecord.index = itr; // 3ayzeno leeh?
+            modRecord.index = itr;
 //            modRecord.labelToBeAdded = "START"; // modify to PROG name
             modRecord.labelToBeAdded = progName; // PROG name set at index 0
             modRecord.operation = "+";
@@ -143,7 +143,7 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
             modRecord.halfBytes = "05"; //zawedto
             modificationRecords.push_back(modRecord);
         } else {
-            evaluateModificationRecordExpression(false, cursor.operands[0], references, cursor.address);
+            evaluateModificationRecordExpression(false,itr, cursor.operands[0], references, cursor.address);
         }
     } else if (cursor.mnemonic == "WORD") {
         //TODO implementation
@@ -153,7 +153,7 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
          * 3) if it's an expression get it's value and store it in obcode while skipping extRef
          * 4) add Modifications for extRef if it exists.
          */
-        evaluateModificationRecordExpression(true, cursor.operands[0], references, cursor.address);
+        evaluateModificationRecordExpression(true,itr, cursor.operands[0], references, cursor.address);
     } else if (cursor.mnemonic == "BYTE") {
         //TODO implementation
         /**
@@ -162,12 +162,13 @@ void PassTwoManager::addModificationRecord(Command cursor, int itr, vector<strin
          * 3) if it's an expression get it's value and store it in obcode while skipping extRef
          * 4) add Modifications for extRef if it exists.
          */
-        evaluateModificationRecordExpression(true, cursor.operands[0], references, cursor.address);
+        evaluateModificationRecordExpression(true,itr, cursor.operands[0], references, cursor.address);
     }
 
 }
 
-bool PassTwoManager::checkAddProgName(string basic_string) {
+bool PassTwoManager::checkAddProgName(string expression) {
     //TODO implement checking if adding program name is needed (if the PROG's labels in expression are odd return true)
+    //LISTA - ENDA is considered a pair, LISTA + ENDA isn't pair and add PROGA twice
     return false;
 }
