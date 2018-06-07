@@ -238,8 +238,6 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         } else {
             ExternalSymbolInfo info;
             info.index = externalReferences.at(j).index;
-            info.address = symbolTable.find(externalReferences.at(j).name)->second.address;
-            info.sectionName = nameOfProgram;
             externalReferenceInfo.insert(make_pair(externalReferences.at(j).name, info));
         }
     }
