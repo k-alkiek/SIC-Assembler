@@ -50,6 +50,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         if (command.mnemonic.compare("CSECT") != 0) {
             startingAddress = command.operands.at(0);
         } else {
+            command.operands.clear();
             startingAddress = "0000";
         }
         while (startingAddress.length() < 4) {
