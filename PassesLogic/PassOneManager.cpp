@@ -25,6 +25,8 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         command.address = "0000";
         locationCounter = 0;
         ++wrongCommandsIterator;
+        finalCommands.push_back(command);
+        ++it;
     } else if(command.mnemonic != "START") {
         startingAddress = "0000";
         nameOfProgram = "NONE";

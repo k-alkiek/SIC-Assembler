@@ -123,7 +123,7 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<string> objectC
     }
     result += data.programLength +"\n";
     int length = 0;
-    int LIMIT = 62;
+    int LIMIT = 60;
     string textRecord = "T";
     textRecord += data.startingAddress;
     string tmpRecord ="";
@@ -153,9 +153,9 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<string> objectC
         ModificationRecord* record = &(*it);
 //        (*it).address = data.commands.at((*it).index).address;
         if(objectCode.at((*it).index).length() == 8) {
-            (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 3);
-        } else {
             (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
+        } else {
+            (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address));
         }
         tmp = (*it).address.length();
         while(tmp < 6){
