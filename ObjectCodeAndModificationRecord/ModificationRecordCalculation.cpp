@@ -102,7 +102,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
         modificationRecords.push_back(modRecord);
     }
 }
-
+//TODO kelma wa7da fei byte needs modification record
 void ModificationRecordCalculation::addModificationRecord(Command cursor, int index, vector<string> definitions,
                                            vector<string> references) {
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
@@ -133,6 +133,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         //TODO check if it's a valid label
         string address = cursor.address;
         for(int i = 0; i < cursor.operands.size(); i++) {
+            //TODO momken tedarab exception law kelma wa7da extRef
             if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
@@ -153,7 +154,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         }
 
     } else if(isExpression(cursor.operands[0])){
-        // it's not a label but the operand is an expression
+        // format 3 with 3 half bytes
         if(containsExternalReference(cursor.operands[0], references)){
             evaluateModificationRecordExpression(false, index, cursor.operands[0], references, cursor.address,definitions);
         } else if(expressionEvaluator.evaluateExpression(cursor.operands[0], cursor.address).type == 0) {
@@ -166,6 +167,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             modificationRecords.push_back(modRecord);
         }
         //TODO 3'alat
+        //TODO check *= and * to modify
     } else if(cursor.operands[0] == "*"){
         //the star mod rec
         ModificationRecord modRecord;
@@ -173,7 +175,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
         modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
-        modRecord.halfBytes = "03";
+        modRecord.halfBytes = "003";
         modificationRecords.push_back(modRecord);
     }
 
