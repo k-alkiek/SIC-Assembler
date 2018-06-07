@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "PassOneManager.h"
 #include "../DTOs/ErrorMsg.h"
-
+#include <stdio.h>
 PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
     string nameOfProgram;
@@ -63,6 +63,11 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         }
 
         if(command.mnemonic.compare("END") == 0){
+            if(command.operands.size() != 0){
+                if(symbolTable.find(command.operands.at(0)) == symbolTable.end()){
+                    command.operands.clear();
+                }
+            }
             dumpLiterals(literalsBuffer);
             endFound = true;
             if (++it != commands.end()) {
@@ -107,21 +112,17 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
                 continue;
 
             }
-            try {
-                char firstChar = command.label[0];
-                string tmp;
-                tmp += firstChar;
-                stoi(tmp);
+            char firstChar = command.label[0];
+            bool accepted = isalpha(firstChar);
+            if (!accepted) {
                 ErrorMsg msg;
                 msg.index = count;
                 msg.msg = "The label " + command.label + " is invalid";
                 newWrongCommands.push_back(msg);
                 ++it;
                 continue;
-
-            } catch (exception e) {
-                    //do nothing
             }
+
             if (command.mnemonic.compare("EQU") == 0) {
                 try {
                     symbolTable[command.label] = getOperandValue(command.operands.front());
