@@ -10,12 +10,16 @@
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include <cmath>
 
+//TODO handle base counter (only needed for displacement)
+//TODO BASE, NOBASE (handeled according to abdelrahman no object code needed)
+//TODO handel L erros
 
 string locationCounter;
 map<string, labelInfo> symbolTable;
 HexaConverter hexaConverter;
 
 string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCounter, map<string, labelInfo> symbolTable) {
+    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
     locationCounter = locationCounter;
     symbolTable = symbolTable;
     CommandIdentifier opTable;
@@ -42,7 +46,6 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCount
             //TODO Error
         }
     } else if (opTable.isInTable(cursor.mnemonic)) {
-
         OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic);
         int commandObjCode = hexaConverter.hexToDecimal(operationInfo.code);
         int format = operationInfo.format;
@@ -123,8 +126,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
         return hexaConverter.decimalToHex(completedObjCode);
-    } else {
-        //TODO RSUB "ta2reban mesh 7ane3melha" return opcode only ex: 1027 RSUB 4C0000
+    } else { //TODO check if its correct
+        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
@@ -160,7 +163,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
         return hexaConverter.decimalToHex(completedObjCode);
     } else {
-        //TODO RSUB
+        //TODO (completed) RSUB No Rsub in format 4
     }
 }
 
@@ -250,8 +253,10 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
 }
 
 bool ObjectCodeCalculation::isExpression(string operand) {
-    if (operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
-        operand.find('*') != std::string::npos || operand.find('/') != std::string::npos) {
+    if (operand.find('+') != std::string::npos
+        || operand.find('-') != std::string::npos
+        || (operand.find('*') != std::string::npos && operand.length() != 1)
+        || operand.find('/') != std::string::npos) {
         return true;
     }
     return false;
