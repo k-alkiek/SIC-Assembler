@@ -56,7 +56,6 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                                                                          vector<string> extReferences, string addressInput,
                                                                          vector<string> definitions) {
     //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
-    //TODO Gamal check for valid expressions for extRef and labels (N.B. extDef are labels in the program)
     string address;
     string halfBytes;
     if (!constant) {
@@ -66,23 +65,6 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
         address = addressInput;
         halfBytes = "06";
     }
-//    vector<string> splitedExpression = parseExpression(expression);
-//    for (int i = 0; i < extReferences.size(); i++) { //get them then sort them
-//        if ( findInExpression(extReferences[i],splitedExpression)) {
-//            int position = expression.find(extReferences[i]); //loop won't work here
-//            ModificationRecord modRecord;
-//            modRecord.index = itr;
-//            modRecord.labelToBeAdded = extReferences[i];
-//            modRecord.address = address;
-//            modRecord.halfBytes = halfBytes;
-//            if (expression.at(position - 1) == '+') {
-//                modRecord.operation = "+";
-//            } else if (expression.at(position - 1) == '-') {
-//                modRecord.operation = "-";
-//            }
-//            modificationRecords.push_back(modRecord);
-//        }
-//    }
 
     for (int i = 0; i < definitions.size(); i++) {
         string exp = expression;
@@ -99,7 +81,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                 modRecord.operation = "-";
             }
             modificationRecords.push_back(modRecord);
-            exp = exp.substr(position + definitions[i].size(), exp.size()); //TODO check if substr is correct
+            exp = exp.substr(position + definitions[i].size(), exp.size());
         }
     }
 
@@ -126,8 +108,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
     if (cursor.mnemonic[0] == '+') {
         //dosent have ext ref
-        //TODO it may contain one word as external reference not necessarily expression (next line)
-        if (!(isExpression(cursor.operands[0]))
+        if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
             || ((isExpression(cursor.operands[0]))
                 && !containsExternalReference(cursor.operands[0], references))) {
             ModificationRecord modRecord;
@@ -141,34 +122,36 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             //have ext ref
             evaluateModificationRecordExpression(false,index, cursor.operands[0], references, cursor.address, definitions);
         }
-    } else if (cursor.mnemonic == "WORD" || cursor.mnemonic == "BYTE") {
-        //TODO if there is more than one operand here  (will be discussed with abdo)
-        //TODO --> loop 3al operands w azawed el adress 3 bytes ta2riban
+    } else if (cursor.mnemonic == "WORD") {
         /**
          * 1) check if it contains an expression
          * 2) check if it's a valid label
-         * 3) if it's an expression get it's value and store it in obcode while skipping extRef //TODO
+         * 3) if it's an expression get it's value and store it in obcode while skipping extRef
          * 4) add Modifications for extRef if it exists.
          */
         //there is a * or it has absolute expression that dosent contain ext ref
         //TODO check if it's a valid label
-        if((cursor.operands[0].size() == 1 && cursor.operands[0] == "*")
-           || (isExpression(cursor.operands[0])
-               && (symbolTable.at(cursor.label)).type == 0
-               && !containsExternalReference(cursor.operands[0], references))){
-            ModificationRecord modRecord;
-            modRecord.index = index;
-            modRecord.labelToBeAdded = progName;
-            modRecord.operation = "+";
-            modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
-            modRecord.halfBytes = "06";
-            modificationRecords.push_back(modRecord);
-        } else if(isExpression(cursor.operands[0]) && containsExternalReference(cursor.operands[0], references)) {
-            // it has absolute expression that contains ext ref
-            evaluateModificationRecordExpression(true, index, cursor.operands[0], references, cursor.address, definitions);
+        string address = cursor.address;
+        for(int i = 0; i < cursor.operands.size(); i++) {
+            if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
+                || (isExpression(cursor.operands[i])
+                    &&!containsExternalReference(cursor.operands[0], references)
+                    && (symbolTable.at(cursor.label)).type == 0)) {
+                ModificationRecord modRecord;
+                modRecord.index = index;
+                modRecord.labelToBeAdded = progName;
+                modRecord.operation = "+";
+                modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(address) + 1));
+                modRecord.halfBytes = "06";
+                modificationRecords.push_back(modRecord);
+            } else if (isExpression(cursor.operands[i]) && containsExternalReference(cursor.operands[0], references)) {
+                // it has absolute expression that contains ext ref
+                evaluateModificationRecordExpression(true, index, cursor.operands[0], references, cursor.address,
+                                                     definitions);
+            }
+            address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(address) + 3));
         }
 
-        //TODO mesh fahma dah?!!
     } else if(isExpression(cursor.operands[0])){
         // it's not a label but the operand is an expression
         if(containsExternalReference(cursor.operands[0], references)){
@@ -179,30 +162,21 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             modRecord.labelToBeAdded = progName;
             modRecord.operation = "+";
             modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
-            modRecord.halfBytes = "05";
+            modRecord.halfBytes = "03";
             modificationRecords.push_back(modRecord);
         }
-        //TODO mesh fahma dah?!!
-    } else if(checkStar(cursor.operands)){
+        //TODO 3'alat
+    } else if(cursor.operands[0] == "*"){
         //the star mod rec
         ModificationRecord modRecord;
         modRecord.index = index;
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
         modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
-        modRecord.halfBytes = "06"; //TODO leeh 06?? mesh 05??
+        modRecord.halfBytes = "03";
         modificationRecords.push_back(modRecord);
     }
 
-}
-
-bool ModificationRecordCalculation::checkStar(vector<string> operands){ //TODO mesh lazem operands yeb2o wa7d bas?
-    for (int i = 0; i < operands.size(); i++){
-        if(operands[i] == "*"){
-            return true;
-        }
-    }
-    return  false;
 }
 
 int ModificationRecordCalculation::checkAddProgName(string expression,vector<string> definitions) {
@@ -218,7 +192,7 @@ int ModificationRecordCalculation::checkAddProgName(string expression,vector<str
             } else if (exp.at(position-1) == '-') {
                 counter --;
             }
-            exp = exp.substr(position+definitions[i].size(),exp.size()); //TODO check if substr is correct
+            exp = exp.substr(position+definitions[i].size(),exp.size());
         }
     }
     return counter;
@@ -229,26 +203,6 @@ bool ModificationRecordCalculation::isExpression(string operand) {
     if (operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
         (operand.find('*') != std::string::npos && operand.length() != 1) || operand.find('/') != std::string::npos) {
         return true;
-    }
-    return false;
-}
-
-vector<string> ModificationRecordCalculation::parseExpression(string expression){
-//    std::vector<std::string> splitedExpression; // vector helps making processing
-//    istringstream splitedData(expression); //TODO leeh fei error?!!
-//    do {
-//        string data;
-//        splitedData >> data;
-//        splitedExpression.push_back(data);
-//    } while (splitedData);
-//    return splitedExpression;
-}
-
-bool ModificationRecordCalculation::findInExpression(string word,vector<string> expression){
-    for (int i = 0; i < expression.size(); i++){
-        if(word == expression[i]){
-            return true;
-        }
     }
     return false;
 }

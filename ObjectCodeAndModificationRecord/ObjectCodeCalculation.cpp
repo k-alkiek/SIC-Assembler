@@ -8,20 +8,22 @@
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../DTOs/labelInfo.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
+#include "../DTOs/ExternalSymbolInfo.h"
 #include <cmath>
 
-//TODO handle base counter (only needed for displacement)
-//TODO BASE, NOBASE (handeled according to abdelrahman no object code needed)
-//TODO handel L erros
+
 
 string locationCounter;
 map<string, labelInfo> symbolTable;
 HexaConverter hexaConverter;
-
-string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCounter, map<string, labelInfo> symbolTable) {
+bool isPc;
+map<string, ExternalSymbolInfo> externalReferences;
+string ObjectCodeCalculation::getObjectCode(Command cursor, string locCounter, map<string, labelInfo> symTable,bool isPcFlag,map<string, ExternalSymbolInfo> externalReference) {
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
-    locationCounter = locationCounter;
-    symbolTable = symbolTable;
+    locationCounter = locCounter;
+    symbolTable = symTable;
+    isPc = isPcFlag;
+    externalReferences = externalReference;
     CommandIdentifier opTable;
     if (cursor.mnemonic == "WORD") {
         string obcode = "";
@@ -34,7 +36,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCount
         //TODO check WORD expression may contain modification record (skip it)
         string operand;
         if (cursor.operands.size() != 1) {
-            // TODO error
+            __throw_runtime_error("Invalid operands");
         } else {
             operand = cursor.operands[0];
         }
@@ -43,7 +45,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCount
         } else if (operand.front() == 'C') {
             return convertCToObjCode(operand.substr(2, operand.length() - 2));
         } else {
-            //TODO Error
+            __throw_runtime_error("Invalid type");
         }
     } else if (opTable.isInTable(cursor.mnemonic)) {
         OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic);
@@ -55,7 +57,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string locationCount
         } else if (format == 2) {
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
         } else if (format == 3 && cursor.operands[0].front() != '+') {
-            return completeObjCodeFormat3(commandObjCode, cursor.operands);
+            return completeObjCodeFormat3(commandObjCode, cursor.operands,isPc);
         } else {
             return completeObjCodeFormat4(commandObjCode, cursor.operands);
         }
@@ -75,13 +77,13 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
     return hexaConverter.decimalToHex(uncompletedObjCode);
 }
 
-string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands) {
+string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands, bool baseAvailable) {
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
     OperandHolder operandHolder("", 0);
     labelInfo label;
     int displacement;
     bool isPC;
-    bool flag = false;
+    bool numberOfOperandsIsZero = true;
     vector<int> results;
     if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);
@@ -89,7 +91,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         if (isAnExpression) {
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
             address = operandHolder.value;
-        } else if (operands[0][0] != '#' && operands[0][0] != '@') {
+        } else if (operands[0][0] != '#' && operands[0][0] != '@' && symbolTable.find(operands[0]) != symbolTable.end()) {
             label = symbolTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
@@ -98,23 +100,23 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
                    symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                   symbolTable.end()) {
+                   symbolTable.end() && is_number(operands[0].substr(1, operands[0].length() - 1))) {
             displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
             if (displacement <= 2047) {
                 isPC = true;
-            } else if (displacement > 2047 && displacement <= 4095) {
+            } else if (displacement > 2047 && displacement <= 4095 && baseAvailable) {
                 isPC = false;
             } else {
-                //TODO ERROR
+                __throw_runtime_error("Displacement is bigger than 4095");
             }
 
-            flag = true;
+            numberOfOperandsIsZero = false;
 
         } else {
-            //TODO ERROR ta2reban
+            __throw_runtime_error("operand is not in sym table");
         }
-        if (!flag) {
-            results = getSimpleDisplacement(address, locationCounter);
+        if (numberOfOperandsIsZero) {
+            results = getSimpleDisplacement(address, locationCounter,baseAvailable);
             if (results[0] == 1) {
                 isPC = true;
             } else {
@@ -132,7 +134,6 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 }
 
 string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
-    //TODO skip any extReference Expression or Operand
     vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
     labelInfo label;
     ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
@@ -144,51 +145,62 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         if (isAnExpression) {
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], locationCounter);
             address = operandHolder.value;
-        } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
-            label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
-            address = label.address;
-        } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                   symbolTable.end()) {
-            address = stoi(operands[0].substr(1, operands[0].length() - 1));
-            if (stoi(address) > pow(2, 20)) {
-                //TODO Error
+        } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
+            if(symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
+                label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
+                address = label.address;
+            } else if(externalReferences.find(operands[0].substr(1, operands[0].length() - 1)) != externalReferences.end()){
+                address = "00000";
+            } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
+                address = stoi(operands[0].substr(1, operands[0].length() - 1));
+                if (stoi(address) > pow(2, 20)) {
+                    __throw_runtime_error("address is bigger than 20 bit");
+                }
             }
+
         } else {
-            address = symbolTable.at(operands[0]).address;
+            if(symbolTable.find(operands[0]) != symbolTable.end()) {
+                label = symbolTable.at(operands[0]);
+                address = label.address;
+            } else if(externalReferences.find(operands[0]) != externalReferences.end()){
+                address = "00000";
+            } else if(is_number(operands[0])){
+                address = stoi(operands[0].substr(1, operands[0].length() - 1));
+                if (stoi(address) > pow(2, 20)) {
+                    __throw_runtime_error("address is bigger than 20 bit");
+                }
+            } else{
+                __throw_runtime_error("Invaled operand");
+            }
         }
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
         return hexaConverter.decimalToHex(completedObjCode);
     } else {
-        //TODO (completed) RSUB No Rsub in format 4
+        __throw_runtime_error("RSUB No Rsub in format 4 ");
     }
 }
 
 vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, int format, bool PCRelative) {
     int ni = 0;
     int xbpe = 0;
-    if (operands.size() > 2) {
-        //TODO ERROR too many operands //mesh 3arfa handelled wala la2?!!
-    }
     if (operands.size() == 2) {
         if (operands[1] == "X") {
             xbpe = 8;       //indexing
         } else {
-            //TODO ERROR wrong second operand
+            __throw_runtime_error("Wrong number of operands");
         }
     }
     if (format == 3) {
         if (operands[0].front() == '#') {
             if (xbpe = 8) {
-                //TODO ERROR can't have immediate with X
+                __throw_runtime_error("ERROR can't have immediate with X");
             }
             ni = 1;             //01 immediate
         } else if (operands[0].front() == '@') {
             if (xbpe = 8) {
-                //TODO ERROR can't have indirect with X
+                __throw_runtime_error("ERROR can't have indirect with X");
             }
             ni = 2;  //10 indirect
         } else {
@@ -233,19 +245,19 @@ int ObjectCodeCalculation::getRegisterNumber(string registerr) {
     }
 }
 
-vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progCounter) {
+vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progCounter,bool baseAvailable) {
     vector<int> results;
     int displacement = 0;
     int isPC = 1;
     int targetAdd = hexaConverter.hexToDecimal(TA);
     int programCount = hexaConverter.hexToDecimal(progCounter);
     displacement = targetAdd - programCount;
-    if (displacement > 2047) { //TODO to be modified in case of base counter
+    if (displacement > 2047 && baseAvailable) {
         isPC = 0;
     } else if (displacement < -2048) {
-        //TODO Error
+        __throw_runtime_error("Displacement is less than -2048");
     } else if (displacement > 4095) {
-        //TODO Error
+        __throw_runtime_error("Displacement is bigger than 4095");
     }
     results.push_back(isPC);
     results.push_back(displacement);
@@ -268,4 +280,11 @@ string ObjectCodeCalculation::convertCToObjCode(string str) {
         asciiString += hexaConverter.decimalToHex(str[i]);
     }
     return asciiString;
+}
+
+bool ObjectCodeCalculation::is_number(string s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }

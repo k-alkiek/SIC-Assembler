@@ -12,9 +12,7 @@ string locationCounter;
 vector<vector<string>> DefRecord;
 vector<ModificationRecord> modificationRecords;
 
-//TODO abdelrahman 7aye3mel write ll refRecords record lama yegeilo
-//TODO inValid expressions for extRef without '+' "gemy"
-//TODO EQU --> (handeled according to abdelrahman no modRec needed)
+
 //TODO LTORG and litteral pools
 
 vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
