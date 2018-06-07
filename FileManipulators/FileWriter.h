@@ -7,8 +7,9 @@ using namespace std;
 
 class FileWriter {
 public:
-    void writeToFile(string fileName,PrimaryData data);
-    void generateObjectCodeFile(string fileName , vector<string> objectCode,PrimaryData data,vector<ModificationRecord> modifications);
+    void writeToFile(string fileName,vector<PrimaryData> data);
+    void generateObjectCodeFile(string fileName , vector<vector<string>> objectCode,
+                                vector<PrimaryData> data,vector<vector<ModificationRecord>> modifications);
 };
 
 
