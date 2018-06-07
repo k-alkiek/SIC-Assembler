@@ -59,6 +59,14 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         std::transform(startingAddress.begin(), startingAddress.end(), startingAddress.begin(), ::toupper);
         nameOfProgram = command.label;
         command.address = startingAddress;
+
+        if(command.label.size() != 0){
+            labelInfo info;
+            info.address = command.address;
+            info.type = "Relative";
+            std::pair<std::string,labelInfo> trying = std::make_pair(command.label,info);
+            symbolTable.insert(trying);
+        }
         locationCounter = hexaConverter.hexToDecimal(startingAddress);
         finalCommands.push_back(command);
         ++it;
