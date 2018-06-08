@@ -105,6 +105,8 @@ string CommandParser::validateLineSyntax(Command line){
                 return "Invalid format 4";
 
         }
+        if(mnemonic == "EXTDEF" || mnemonic == "EXTREF")
+            return " ";
         if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
             return "Wrong operands number";
         }
