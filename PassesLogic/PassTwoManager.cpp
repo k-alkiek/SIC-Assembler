@@ -32,12 +32,13 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     int itr = 1;
 
     while (cursor.mnemonic != "END") {
-        if(false){ //TODO if we wil not generate obCode for an instruction return empty textRec for ex LTORG
-            textRecord.push_back("");
-            continue;
-        }
         checkForErrors(cursor);
         update(cursor);
+        if(noObjCode(cursor.mnemonic)){
+            textRecord.push_back("");
+            cursor = commands[++itr];
+            continue;
+        }
         if (cursor.operands.size() != 0) {
             modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
         }
@@ -55,6 +56,9 @@ vector<vector<string>> PassTwoManager::getDefRecord() {
 }
 vector<ModificationRecord> PassTwoManager::getModifiactionRecords() {
     return modificationRecords;
+}
+vector<string> PassTwoManager::getTextRecord(){
+    return textRecord;
 }
 
 void PassTwoManager::checkForErrors(Command cursor){
@@ -125,4 +129,10 @@ string PassTwoManager::convertCToObjCode(string str) {
         asciiString += hexaConverter.decimalToHex(str[i]);
     }
     return asciiString;
+}
+bool PassTwoManager::noObjCode(string mnemonic){
+    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF"){
+        return true;
+    }
+    return false;
 }

@@ -17,7 +17,7 @@ vector<string> extRef;
 bool isPc;
 
 
-//TODO litrals
+
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,bool isPcFlag,vector<string> externalReference) {
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
@@ -32,12 +32,14 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
         for (int i = 0; i < cursor.operands.size(); i++) {
             if(isExpression(cursor.operands[i])){
                 operandHolder = expressionEvaluator.evaluateExpression(cursor.operands[i],currentInstAdd);
-                obcode += operandHolder.value;
+                string value = "000000" + operandHolder.value;
+                obcode += value.substr(value.length()-6,value.length()-1);
             } else{
                 if(containsExternalReference(cursor.operands[i],externalReference)){
                     obcode += "000000";
                 } else{
-                    obcode += hexConverter.decimalToHex(stoi(cursor.operands[i]));
+                    string value = "000000" + hexConverter.decimalToHex(stoi(cursor.operands[i]));
+                    obcode += value.substr(value.length()-6,value.length()-1);
                 }
             }
         }
@@ -50,9 +52,9 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             operand = cursor.operands[0];
         }
         if (operand.front() == 'X' && operand[1] == '\'') {
-            return operand.substr(2, operand.length() - 2);
+            return operand.substr(2, operand.length() - 3);
         } else if (operand.front() == 'C' && operand[1] == '\'') {
-            return convertCToObjCode(operand.substr(2, operand.length() - 2));
+            return convertCToObjCode(operand.substr(2, operand.length() - 3));
         } else {
             __throw_runtime_error("Invalid type");
         }
@@ -67,9 +69,11 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
         } else if (format == 3 && cursor.operands[0].front() != '+') {
             return completeObjCodeFormat3(commandObjCode, cursor.operands,isPc);
-        } else {
-            return completeObjCodeFormat4(commandObjCode, cursor.operands);
         }
+    }else if(opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
+        OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1));
+        int commandObjCode = hexConverter.hexToDecimal(operationInfo.code);
+        return completeObjCodeFormat4(commandObjCode, cursor.operands);
     }
 }
 
@@ -103,7 +107,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 __throw_runtime_error("absolute expression in format 3 instruction");
             }
             address = operandHolder.value;
-        } else if (operands[0][0] != '#' && operands[0][0] != '@' && symblTable.find(operands[0]) != symblTable.end()) {
+        } else if (operands[0][0] != '#' && operands[0][0] != '@') {
+            if(symblTable.find(operands[0]) != symblTable.end())
             label = symblTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
@@ -148,9 +153,10 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
-        return hexConverter.decimalToHex(completedObjCode);
+        string final = "000000" + hexConverter.decimalToHex(completedObjCode);
+        return (final).substr(final.length() - 6, final.length() - 1);
     } else { //TODO check if its correct
-        return "4C"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
@@ -197,7 +203,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        return hexConverter.decimalToHex(completedObjCode);
+        string value = "0000" +  hexConverter.decimalToHex(completedObjCode);
+        return value.substr(value.length()-8,value.length()-1);
     } else {
         __throw_runtime_error("RSUB No Rsub in format 4 ");
     }
@@ -234,12 +241,25 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
         }
 
     } else { //format 4
-        ni = 3;
+        if (operands[0].front() == '#') {
+            if (xbpe == 8) {
+                __throw_runtime_error("ERROR can't have immediate with X");
+            }
+            ni = 1;             //01 immediate
+        } else if (operands[0].front() == '@') {
+            if (xbpe == 8) {
+                __throw_runtime_error("ERROR can't have indirect with X");
+            }
+            ni = 2;  //10 indirect
+        } else {
+            ni = 3; //11 simple addressing
+        }
         xbpe = xbpe | 1;
     }
     vector<int> returnedValue;
     returnedValue.push_back(ni);
     returnedValue.push_back(xbpe);
+    return returnedValue;
 }
 
 int ObjectCodeCalculation::getRegisterNumber(string registerr) {

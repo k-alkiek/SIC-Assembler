@@ -29,10 +29,12 @@ private:
     void update(Command cursor);
     void calculateLitrals();
     string convertCToObjCode(string str);
+    bool noObjCode(string mnemonic);
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
     vector<ModificationRecord> getModifiactionRecords();
     vector<vector<string>> getDefRecord();
+    vector<string> getTextRecord();
 };
 
 
