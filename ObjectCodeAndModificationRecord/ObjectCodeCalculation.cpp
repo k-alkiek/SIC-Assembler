@@ -17,7 +17,7 @@ vector<string> extRef;
 bool isPc;
 
 
-//TODO litrals
+
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,bool isPcFlag,vector<string> externalReference) {
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
@@ -69,9 +69,11 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
         } else if (format == 3 && cursor.operands[0].front() != '+') {
             return completeObjCodeFormat3(commandObjCode, cursor.operands,isPc);
-        } else {
-            return completeObjCodeFormat4(commandObjCode, cursor.operands);
         }
+    }else if(opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
+        OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1));
+        int commandObjCode = hexConverter.hexToDecimal(operationInfo.code);
+        return completeObjCodeFormat4(commandObjCode, cursor.operands);
     }
 }
 
@@ -200,7 +202,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        return hexConverter.decimalToHex(completedObjCode);
+        string value = "0000" +  hexConverter.decimalToHex(completedObjCode);
+        return value.substr(value.length()-8,value.length()-1);
     } else {
         __throw_runtime_error("RSUB No Rsub in format 4 ");
     }
@@ -237,7 +240,19 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
         }
 
     } else { //format 4
-        ni = 3;
+        if (operands[0].front() == '#') {
+            if (xbpe == 8) {
+                __throw_runtime_error("ERROR can't have immediate with X");
+            }
+            ni = 1;             //01 immediate
+        } else if (operands[0].front() == '@') {
+            if (xbpe == 8) {
+                __throw_runtime_error("ERROR can't have indirect with X");
+            }
+            ni = 2;  //10 indirect
+        } else {
+            ni = 3; //11 simple addressing
+        }
         xbpe = xbpe | 1;
     }
     vector<int> returnedValue;
