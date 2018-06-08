@@ -107,7 +107,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 __throw_runtime_error("absolute expression in format 3 instruction");
             }
             address = operandHolder.value;
-        } else if (operands[0][0] != '#' && operands[0][0] != '@' && symblTable.find(operands[0]) != symblTable.end()) {
+        } else if (operands[0][0] != '#' && operands[0][0] != '@') {
+            if(symblTable.find(operands[0]) != symblTable.end())
             label = symblTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {

@@ -153,8 +153,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
 
     }
     //dih 8alat mafeesh modification record l format 3
-        //TODO check *= and * to modify
-    else if(cursor.operands[0] == "*"){
+    else if(cursor.operands[0] == "=*"){
         //the star mod rec
         ModificationRecord modRecord;
         modRecord.index = index;
