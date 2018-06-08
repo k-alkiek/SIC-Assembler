@@ -25,6 +25,7 @@ private:
     vector<string> parseExpression(string expression);
     bool findInExpression(string word,vector<string> expression);
     int checkAddProgName(string basic_string,vector<string> definitions);
+    void checkForErrors(Command cursor,vector<string> references);
 
 public:
     void setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTable);

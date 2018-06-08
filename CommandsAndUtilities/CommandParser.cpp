@@ -310,7 +310,15 @@ vector<ErrorMsg> CommandParser::getWrongCommands() {
 
 string CommandParser::validateStart(Command command) {
 
-    string operand = command.operands[0];
+    string operand;
+    try{
+        operand = command.operands[0];
+    } catch (runtime_error)
+    {
+        command.operands={};
+        command.operands.push_back("0000");
+        return " ";
+    }
 
     vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
     for(int i = 0 ; i < operand.length() ; i++)
