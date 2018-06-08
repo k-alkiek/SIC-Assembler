@@ -1,6 +1,5 @@
 #include "PassTwoManager.h"
 #include "../CommandsAndUtilities/CommandIdentifier.h"
-#include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../ObjectCodeAndModificationRecord/ObjectCodeCalculation.h"
 #include "../ObjectCodeAndModificationRecord/ModificationRecordCalculation.h"
@@ -25,9 +24,7 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;
 
-
     modificationRecordCalculation.setPrimaryDataNeeded(primaryData.commands[0].label, primaryData.symbolTable);
-
 
     Command cursor;
     vector<Command> commands = primaryData.commands;
@@ -55,8 +52,8 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 vector<vector<string>> PassTwoManager::getDefRecord() {
     return DefRecord;
 }
-vector<vector<string>> PassTwoManager::getModifiactionRecords() {
-    return DefRecord;
+vector<ModificationRecord> PassTwoManager::getModifiactionRecords() {
+    return modificationRecords;
 }
 
 void PassTwoManager::checkForErrors(Command cursor){
@@ -93,8 +90,8 @@ void PassTwoManager::update(Command cursor){
         calculateLitrals();
     }
     if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
-        vector<string> dRec;
-        defRecordUnsorted.insert(cursor.label, cursor.address);
+//        vector<string> dRec;
+        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
     }
 
 }

@@ -17,7 +17,7 @@ private:
     string convertCToObjCode(string str);
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
-    vector<vector<string>> getModifiactionRecords();
+    vector<ModificationRecord> getModifiactionRecords();
     vector<vector<string>> getDefRecord();
 };
 

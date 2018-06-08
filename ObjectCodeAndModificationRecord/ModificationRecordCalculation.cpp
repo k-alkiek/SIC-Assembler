@@ -136,7 +136,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
-                    && (symbolTable.at(cursor.label)).type == 0)) {
+                    && (symbolTable.at(cursor.label)).type != "relative")) {
                 ModificationRecord modRecord;
                 modRecord.index = index;
                 modRecord.labelToBeAdded = progName;
