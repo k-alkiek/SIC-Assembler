@@ -126,7 +126,10 @@ vector<OperandHolder> ExpressionEvaluator::form_operands(vector<string>* labels)
     for(int i = 0 ; i < labels->size(); i++)
     {
         if(this->symtable.find((*labels)[i]) == this->symtable.end())
-            operands.push_back(OperandHolder((*labels)[i],0));
+            if(isdigit((*labels)[i][0]))
+                operands.push_back(OperandHolder((*labels)[i],0));
+            else
+                operands.push_back(OperandHolder("0",0));
         else
         {
             labelInfo label = this->symtable[(*labels)[i]];
