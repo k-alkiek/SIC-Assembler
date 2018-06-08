@@ -149,7 +149,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
         return hexConverter.decimalToHex(completedObjCode);
     } else { //TODO check if its correct
-        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4C"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
