@@ -32,12 +32,14 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
         for (int i = 0; i < cursor.operands.size(); i++) {
             if(isExpression(cursor.operands[i])){
                 operandHolder = expressionEvaluator.evaluateExpression(cursor.operands[i],currentInstAdd);
-                obcode += operandHolder.value;
+                string value = "000000" + operandHolder.value;
+                obcode += value.substr(value.length()-6,value.length()-1);
             } else{
                 if(containsExternalReference(cursor.operands[i],externalReference)){
                     obcode += "000000";
                 } else{
-                    obcode += hexConverter.decimalToHex(stoi(cursor.operands[i]));
+                    string value = "000000" + hexConverter.decimalToHex(stoi(cursor.operands[i]));
+                    obcode += value.substr(value.length()-6,value.length()-1);
                 }
             }
         }
@@ -50,9 +52,9 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             operand = cursor.operands[0];
         }
         if (operand.front() == 'X' && operand[1] == '\'') {
-            return operand.substr(2, operand.length() - 2);
+            return operand.substr(2, operand.length() - 3);
         } else if (operand.front() == 'C' && operand[1] == '\'') {
-            return convertCToObjCode(operand.substr(2, operand.length() - 2));
+            return convertCToObjCode(operand.substr(2, operand.length() - 3));
         } else {
             __throw_runtime_error("Invalid type");
         }
@@ -148,9 +150,10 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
-        return hexConverter.decimalToHex(completedObjCode);
+        string final = "000000" + hexConverter.decimalToHex(completedObjCode);
+        return (final).substr(final.length() - 6, final.length() - 1);
     } else { //TODO check if its correct
-        return "4C"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
@@ -240,6 +243,7 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
     vector<int> returnedValue;
     returnedValue.push_back(ni);
     returnedValue.push_back(xbpe);
+    return returnedValue;
 }
 
 int ObjectCodeCalculation::getRegisterNumber(string registerr) {
