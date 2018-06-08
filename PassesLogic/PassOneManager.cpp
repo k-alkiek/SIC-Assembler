@@ -276,27 +276,13 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
 }
 
 void PassOneManager::dumpLiterals(vector<string> literalsBuffer) {
-    for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++)    {
-        string literal = *it;
-        labelInfo info;
-        info.address = getCurrentLocation();
-        info.type = "Relative";
-        symbolTable.insert(make_pair(literal,info));
-        string value = literal.substr(3, literal.length() - 4);
-        char type = literal[1];
-        int space = 0;
-        if (type == 'C') {
-            space = value.length();
-        }
-        else if (type == 'X') {
-            space = (value.length() + 1)/2;
-        }
-        else if (type == 'W') {
-            space = 3;
-        }
+    for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++) {
+        string literalName = *it;
+        Literal literal = Literal(literalName, getCurrentLocation());
 
-        locationCounter += space;
-        programLength += space;
+        literalTable.insert(make_pair(literalName, literal));
+        locationCounter += literal.getSpace();
+        programLength += literal.getSpace();
     }
     literalsBuffer.clear();
 }

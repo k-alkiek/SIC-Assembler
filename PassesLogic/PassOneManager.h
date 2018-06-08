@@ -5,11 +5,13 @@
 #include "../DTOs/labelInfo.h"
 #include "../DTOs/ErrorMsg.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
+#include "../CommandsAndUtilities/Literal.h"
 
 using namespace std;
 class PassOneManager {
 private:
-    map<string,labelInfo> symbolTable;
+    map<string, labelInfo> symbolTable;
+    map<string, Literal> literalTable;
     int locationCounter;
     int programLength;
     HexaConverter hexaConverter;
