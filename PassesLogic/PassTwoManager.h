@@ -31,7 +31,7 @@ private:
     string convertCToObjCode(string str);
     bool noObjCode(string mnemonic);
 public:
-    vector<string> generateObjectCode(PrimaryData primaryData);
+    void generateObjectCode(PrimaryData primaryData);
     vector<ModificationRecord> getModifiactionRecords();
     vector<vector<string>> getDefRecord();
     vector<string> getTextRecord();
