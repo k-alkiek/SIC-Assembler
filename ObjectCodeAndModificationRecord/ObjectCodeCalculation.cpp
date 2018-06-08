@@ -4,28 +4,25 @@
 
 #include "ObjectCodeCalculation.h"
 #include "../CommandsAndUtilities/CommandIdentifier.h"
-#include "../CommandsAndUtilities/Command.h"
-#include "../ConvertersAndEvaluators/HexaConverter.h"
-#include "../DTOs/labelInfo.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../DTOs/ExternalSymbolInfo.h"
 #include <cmath>
 
 
-string nextInstructionAddress;
+string nextInstructAddress;
 string currentInstructionAddress;
-map<string, labelInfo> symbolTable;
-HexaConverter hexaConverter;
+map<string, labelInfo> symblTable;
+HexaConverter hexConverter;
 vector<string> extRef;
 bool isPc;
 
 
 //TODO litrals
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,bool isPcFlag,vector<string> externalReference) {
-    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
+    ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
-    nextInstructionAddress = nextInstAdd;
-    symbolTable = symTable;
+    nextInstructAddress = nextInstAdd;
+    symblTable = symTable;
     extRef = externalReference;
     currentInstructionAddress = currentInstAdd;
     isPc = isPcFlag;
@@ -40,7 +37,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
                 if(containsExternalReference(cursor.operands[i],externalReference)){
                     obcode += "000000";
                 } else{
-                    obcode += hexaConverter.decimalToHex(stoi(cursor.operands[i]));
+                    obcode += hexConverter.decimalToHex(stoi(cursor.operands[i]));
                 }
             }
         }
@@ -61,11 +58,11 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
         }
     } else if (opTable.isInTable(cursor.mnemonic)) {
         OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic);
-        int commandObjCode = hexaConverter.hexToDecimal(operationInfo.code);
+        int commandObjCode = hexConverter.hexToDecimal(operationInfo.code);
         int format = operationInfo.format;
 
         if (format == 1) {
-            return hexaConverter.decimalToHex(commandObjCode);
+            return hexConverter.decimalToHex(commandObjCode);
         } else if (format == 2) {
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
         } else if (format == 3 && cursor.operands[0].front() != '+') {
@@ -86,11 +83,11 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
         uncompletedObjCode = uncompletedObjCode << 4;
     }
     uncompletedObjCode = uncompletedObjCode | registerCode;
-    return hexaConverter.decimalToHex(uncompletedObjCode);
+    return hexConverter.decimalToHex(uncompletedObjCode);
 }
 
 string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands, bool baseAvailable) {
-    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
+    ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
     labelInfo label;
     int displacement;
@@ -106,19 +103,19 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 __throw_runtime_error("absolute expression in format 3 instruction");
             }
             address = operandHolder.value;
-        } else if (operands[0][0] != '#' && operands[0][0] != '@' && symbolTable.find(operands[0]) != symbolTable.end()) {
-            label = symbolTable.at(operands[0]);
+        } else if (operands[0][0] != '#' && operands[0][0] != '@' && symblTable.find(operands[0]) != symblTable.end()) {
+            label = symblTable.at(operands[0]);
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
-            if(symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
-                label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
-            } else if(false/*litTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()*/){ //TODO barie must have finished litTable
+            if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
+                label = symblTable.at(operands[0].substr(1, operands[0].length() - 1));
+            } else if(false/*litTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()*/){ //TODO barie must have finished litTable
                // label = litTable.at(operands[0].substr(1, operands[0].length() - 1));
             }
             address = label.address;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                   symbolTable.end() && is_number(operands[0].substr(1, operands[0].length() - 1))) {
+                   symblTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
+                   symblTable.end() && is_number(operands[0].substr(1, operands[0].length() - 1))) {
             displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
             if(baseAvailable){
                 if(displacement > 4095){
@@ -139,7 +136,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             __throw_runtime_error("operand is not in sym table");
         }
         if (numberOfOperandsIsZero) {
-            results = getSimpleDisplacement(address, nextInstructionAddress,baseAvailable);
+            results = getSimpleDisplacement(address, nextInstructAddress,baseAvailable);
             if (results[0] == 1) {
                 isPC = true;
             } else {
@@ -150,7 +147,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         vector<int> nixbpe = getFlagsCombination(operands, 3, isPC); // give me ni separated from xbpe
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
-        return hexaConverter.decimalToHex(completedObjCode);
+        return hexConverter.decimalToHex(completedObjCode);
     } else { //TODO check if its correct
         return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
@@ -159,7 +156,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
     vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
     labelInfo label;
-    ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
+    ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
     string address;
     if (operands.size() != 0) {
@@ -169,8 +166,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], currentInstructionAddress);
             address = operandHolder.value;
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
-            if(symbolTable.find(operands[0].substr(1, operands[0].length() - 1)) != symbolTable.end()) {
-                label = symbolTable.at(operands[0].substr(1, operands[0].length() - 1));
+            if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
+                label = symblTable.at(operands[0].substr(1, operands[0].length() - 1));
                 address = label.address;
             } else if(containsExternalReference(operands[0].substr(1, operands[0].length() - 1),extRef)){
                 address = "00000";
@@ -182,8 +179,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             }
 
         } else {
-            if(symbolTable.find(operands[0]) != symbolTable.end()) {
-                label = symbolTable.at(operands[0]);
+            if(symblTable.find(operands[0]) != symblTable.end()) {
+                label = symblTable.at(operands[0]);
                 address = label.address;
             } else if(containsExternalReference(operands[0],extRef)){
                 address = "00000";
@@ -199,7 +196,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        return hexaConverter.decimalToHex(completedObjCode);
+        return hexConverter.decimalToHex(completedObjCode);
     } else {
         __throw_runtime_error("RSUB No Rsub in format 4 ");
     }
@@ -272,8 +269,8 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
     vector<int> results;
     int displacement = 0;
     int isPC = 1;
-    int targetAdd = hexaConverter.hexToDecimal(TA);
-    int programCount = hexaConverter.hexToDecimal(progCounter);
+    int targetAdd = hexConverter.hexToDecimal(TA);
+    int programCount = hexConverter.hexToDecimal(progCounter);
     displacement = targetAdd - programCount;
 
     if(baseAvailable){
@@ -306,7 +303,7 @@ bool ObjectCodeCalculation::isExpression(string operand) {
 string ObjectCodeCalculation::convertCToObjCode(string str) {
     string asciiString = "";
     for (int i = 0; i < str.length(); i++) {
-        asciiString += hexaConverter.decimalToHex(str[i]);
+        asciiString += hexConverter.decimalToHex(str[i]);
     }
     return asciiString;
 }

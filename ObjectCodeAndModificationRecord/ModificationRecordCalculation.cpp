@@ -3,17 +3,16 @@
 //
 
 #include "ModificationRecordCalculation.h"
-#include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 
 string progName;
-map<string, labelInfo> symbolTable;
-HexaConverter hexaConverter;
-vector<ModificationRecord> modificationRecords;
-ExpressionEvaluator expressionEvaluator(symbolTable, hexaConverter);
+map<string, labelInfo> symTab;
+HexaConverter hexConvertor;
+vector<ModificationRecord> modificationRecord;
+ExpressionEvaluator expressionEvaluator(symTab, hexConvertor);
 void ModificationRecordCalculation::setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTab) {
     progName = name;
-    symbolTable = symbolTab;
+    symTab = symbolTab;
 }
 
 bool ModificationRecordCalculation::containsExternalReference (string expression, vector<string> extReferences) {
@@ -40,7 +39,7 @@ vector<vector<string>> ModificationRecordCalculation::setDefRecord(map<string, s
 }
 
 vector<ModificationRecord> ModificationRecordCalculation::getModificationRecords() {
-    return modificationRecords;
+    return modificationRecord;
 }
 
 /**
@@ -59,7 +58,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
     string address;
     string halfBytes;
     if (!constant) {
-        address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(addressInput) + 1));
+        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
         halfBytes = "05";
     } else {
         address = addressInput;
@@ -80,7 +79,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
             } else if (exp.at(position - 1) == '-') {
                 modRecord.operation = "-";
             }
-            modificationRecords.push_back(modRecord);
+            modificationRecord.push_back(modRecord);
             exp = exp.substr(position + definitions[i].size(), exp.size());
         }
     }
@@ -99,7 +98,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
         }
         modRecord.address = address;
         modRecord.halfBytes = halfBytes;
-        modificationRecords.push_back(modRecord);
+        modificationRecord.push_back(modRecord);
     }
 }
 
@@ -115,9 +114,9 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             modRecord.index = index;
             modRecord.labelToBeAdded = progName;
             modRecord.operation = "+";
-            modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
+            modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
             modRecord.halfBytes = "05";
-            modificationRecords.push_back(modRecord);
+            modificationRecord.push_back(modRecord);
         } else {
             //have ext ref
             evaluateModificationRecordExpression(false,index, cursor.operands[0], references, cursor.address, definitions);
@@ -136,20 +135,20 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
-                    && (symbolTable.at(cursor.label)).type != "relative")) {
+                    && (symTab.at(cursor.label)).type != "relative")) {
                 ModificationRecord modRecord;
                 modRecord.index = index;
                 modRecord.labelToBeAdded = progName;
                 modRecord.operation = "+";
-                modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(address) + 1));
+                modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 1));
                 modRecord.halfBytes = "06";
-                modificationRecords.push_back(modRecord);
+                modificationRecord.push_back(modRecord);
             } else if (isExpression(cursor.operands[i]) && containsExternalReference(cursor.operands[0], references)) {
                 // it has absolute expression that contains ext ref
                 evaluateModificationRecordExpression(true, index, cursor.operands[0], references, cursor.address,
                                                      definitions);
             }
-            address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(address) + 3));
+            address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
 
     }
@@ -160,9 +159,9 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         modRecord.index = index;
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
-        modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
+        modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
         modRecord.halfBytes = "003"; // TODO check isn't it 03?
-        modificationRecords.push_back(modRecord);
+        modificationRecord.push_back(modRecord);
     }
 
 }

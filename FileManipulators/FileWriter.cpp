@@ -210,7 +210,7 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
 
             length = 0;
         }
-
+        //TODO use half Bytes in Modification record (abdelrahman)
         for(vector<ModificationRecord>::iterator it = modifications[i].begin();
             it != modifications[i].end();++it){
             result += "M";
