@@ -32,14 +32,13 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     int itr = 1;
 
     while (cursor.mnemonic != "END") {
-
+        checkForErrors(cursor);
+        update(cursor);
         if(noObjCode(cursor.mnemonic)){
             textRecord.push_back("");
             cursor = commands[++itr];
             continue;
         }
-        checkForErrors(cursor);
-        update(cursor);
         if (cursor.operands.size() != 0) {
             modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
         }
@@ -132,7 +131,7 @@ string PassTwoManager::convertCToObjCode(string str) {
     return asciiString;
 }
 bool PassTwoManager::noObjCode(string mnemonic){
-    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG"){
+    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF"){
         return true;
     }
     return false;

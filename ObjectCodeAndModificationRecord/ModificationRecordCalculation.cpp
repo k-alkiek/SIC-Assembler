@@ -65,16 +65,16 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
 //        halfBytes = "06";
 //    }
 
-    for (int i = 0; i < definitions.size(); i++) {
+    for (int i = 0; i < extReferences.size(); i++) {
         string exp = expression;
-        while (exp.find(definitions[i]) != string::npos) { // not sorted
-            int position = exp.find(definitions[i]);
+        while (exp.find(extReferences[i]) != string::npos) { // not sorted
+            int position = exp.find(extReferences[i]);
             ModificationRecord modRecord;
             modRecord.index = itr;
             modRecord.labelToBeAdded = extReferences[i];
             modRecord.address = address;
 //            modRecord.halfBytes = halfBytes;
-            if (exp.at(position - 1) == '+') {
+            if (position == 0 || exp.at(position - 1) == '+') {
                 modRecord.operation = "+";
             } else if (exp.at(position - 1) == '-') {
                 modRecord.operation = "-";
@@ -193,7 +193,7 @@ void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string>
        && cursor.mnemonic[0] != '+'){
         __throw_runtime_error("can't have absolute expression with format other than 4");
     }
-    if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+'){
+    if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF"){
         __throw_runtime_error("can't have extRef with format other than 4");
     }
 }
