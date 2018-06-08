@@ -12,11 +12,13 @@ class Literal {
 private:
     string name;
     string value;
+    string address;
     unsigned long space;
     void process(string currentLocation);
 public:
     Literal(string name, string currentLocation);
     string getName();
+    string getAddress();
     string getValue();
     int getSpace();
 

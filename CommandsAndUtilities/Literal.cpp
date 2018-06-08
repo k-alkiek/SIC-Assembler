@@ -12,6 +12,7 @@ Literal::Literal(string name, string currentLocation) {
 
 void Literal::process(string currentLocation) {
     char type = name[1];
+    address = currentLocation;
     HexaConverter hexaConverter = HexaConverter();
 
     if (type == '*' && name.length() == 2) {
@@ -50,10 +51,14 @@ string Literal::getName() {
     return name;
 }
 
+string Literal::getAddress() {
+    return address;
+}
+
 string Literal::getValue() {
     return value;
 }
 
 int Literal::getSpace() {
-    return space
+    return space;
 }

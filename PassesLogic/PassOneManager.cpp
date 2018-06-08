@@ -14,7 +14,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
     it = commands.begin();
     command = *it;
     programLength = 0;
-    vector<string> literalsBuffer;
+    vector<pair<string, int>> literalsBuffer;
     int count = 0;
     vector<ErrorMsg>::iterator wrongCommandsIterator = wrongCommands.begin();
     map<int, string> errorMsgsMap;
@@ -89,7 +89,12 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
                     command.operands.clear();
                 }
             }
-            dumpLiterals(literalsBuffer);
+
+            vector<ErrorMsg> literalErrorMessages = dumpLiterals(literalsBuffer);
+            for (auto literalErrorMessage : literalErrorMessages) {
+                newWrongCommands.push_back(literalErrorMessage);
+            }
+
             endFound = true;
             if (++it != commands.end()) {
                 ErrorMsg msg;
@@ -114,12 +119,15 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
 
         }
         else if (command.mnemonic.compare("LTORG") == 0){
-            dumpLiterals(literalsBuffer);
+            vector<ErrorMsg> literalErrorMessages = dumpLiterals(literalsBuffer);
+            for (auto literalErrorMessage : literalErrorMessages) {
+                newWrongCommands.push_back(literalErrorMessage);
+            }
         }
 
         if (command.operands.front()[0] == '=') {     //literal operand
             if (symbolTable.find(command.operands.front()) == symbolTable.end()) {
-                literalsBuffer.push_back(command.operands.front());
+                literalsBuffer.push_back(make_pair(command.operands.front(), count));
             }
         }
         if(command.label.compare("") != 0){
@@ -250,7 +258,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             externalReferenceInfo.insert(make_pair(externalReferences.at(j).name, info));
         }
     }
-    
+
     for (vector<ErrorMsg>::iterator it = wrongCommands.begin(); it != wrongCommands.end(); it++) {
         ErrorMsg errorMsg = *it;
         errorMsgsMap.insert(make_pair(errorMsg.index, errorMsg.msg));
@@ -268,6 +276,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
     data.externalReference = externalReferenceInfo;
     data.errorMsgsMap = errorMsgsMap;
     data.symbolTable = symbolTable;
+    data.literalTable = literalTable;
     data.programName = nameOfProgram;
     data.programLength = hexaConverter.decimalToHex(programLength);
     data.startingAddress = startingAddress;
@@ -275,14 +284,24 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
     return data;
 }
 
-void PassOneManager::dumpLiterals(vector<string> literalsBuffer) {
-    for(vector<string>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++) {
-        string literalName = *it;
-        Literal literal = Literal(literalName, getCurrentLocation());
+vector<ErrorMsg> PassOneManager::dumpLiterals(vector<pair<string, int>> literalsBuffer) {
+    vector<ErrorMsg> errorMessages;
+    for(vector<pair<string, int>>::iterator it = literalsBuffer.begin(); it != literalsBuffer.end(); it++) {
+        string literalName = it->first;
+        int count = it->second;
 
-        literalTable.insert(make_pair(literalName, literal));
-        locationCounter += literal.getSpace();
-        programLength += literal.getSpace();
+        try {
+            Literal literal = Literal(literalName, getCurrentLocation());
+            literalTable.insert(make_pair(literalName, literal));
+            locationCounter += literal.getSpace();
+            programLength += literal.getSpace();
+        } catch (exception e) {
+            ErrorMsg msg;
+            msg.index = count;
+            msg.msg = "Bad literal";
+            errorMessages.push_back(msg);
+        }
+
     }
     literalsBuffer.clear();
 }

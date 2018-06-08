@@ -95,6 +95,29 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
                 file << "\n";
             }
 
+            file << "\n Literals\n";
+            file << "\n\nname        value          address\n";
+            for (map<string, Literal>::const_iterator it = (*dataIterator).literalTable.begin();
+                 it != (*dataIterator).literalTable.end(); ++it) {
+
+                file << it->first;
+                tmp = it->first.size();
+                while (tmp < 13) {
+                    file << " ";
+                    tmp++;
+                }
+
+                Literal literal = it->second;
+                file << literal.getValue();
+                tmp = literal.getValue().length();
+                while (tmp < 14) {
+                    file << " ";
+                    tmp++;
+                }
+                file << literal.getAddress();
+                file << "\n";
+            }
+
             file << "\n\n        SUCCESSFUL COMPILATION !\n\n";
         }
     }

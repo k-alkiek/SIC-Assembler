@@ -7,13 +7,15 @@
 #include "../CommandsAndUtilities/Command.h"
 #include "labelInfo.h"
 #include "ExternalSymbolInfo.h"
+#include "../CommandsAndUtilities/Literal.h"
 
 
 using namespace std;
 class PrimaryData {
 public:
     string startingAddress;
-    map<string,labelInfo> symbolTable;
+    map<string, labelInfo> symbolTable;
+    map<string, Literal> literalTable;
     string programLength;
     vector<Command> commands;
     map<int, string> errorMsgsMap;
