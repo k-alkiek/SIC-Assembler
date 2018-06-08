@@ -53,7 +53,7 @@ int main() {
 
     FileReader reader;
     CommandParser parser;
-    vector<string> lines = reader.readFile("/home/saraheldafrawy/CLionProjects/SIC-Assembler/test2.txt");
+    vector<string> lines = reader.readFile("/home/mostafa/CLionProjects/SIC-Assembler/test2.txt");
     vector<Command> commands = parser.parseFile(lines);
     vector<ErrorMsg> wrongCommands = parser.getWrongCommands();
     PassOneManager passOne;

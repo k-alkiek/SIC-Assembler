@@ -90,9 +90,9 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
     labelInfo label;
-    int displacement;
+    int displacement = 0;
     bool isPC;
-    bool numberOfOperandsIsZero = true;
+    bool constImmediateOrIndirect = true;
     vector<int> results;
     if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);
@@ -109,33 +109,34 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
             if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
                 label = symblTable.at(operands[0].substr(1, operands[0].length() - 1));
+                address = label.address;
             } else if(false/*litTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()*/){ //TODO barie must have finished litTable
                // label = litTable.at(operands[0].substr(1, operands[0].length() - 1));
-            }
-            address = label.address;
-        } else if ((operands[0][0] == '#' || operands[0][0] == '@') &&
-                   symblTable.find(operands[0].substr(1, operands[0].length() - 1)) ==
-                   symblTable.end() && is_number(operands[0].substr(1, operands[0].length() - 1))) {
-            displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
-            if(baseAvailable){
-                if(displacement > 4095){
-                    __throw_runtime_error("Displacement out of range");
+                address = label.address;
+            } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
+                displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
+                if(baseAvailable){
+                    if(displacement > 4095){
+                        __throw_runtime_error("Displacement out of range");
+                    }
+                    isPC = false;
+                } else {
+                    if (displacement < 2048 || displacement >= -2048) {
+                        isPC = true;
+                    } else if(displacement > 2047){
+                        __throw_runtime_error("Displacement out of range");
+                    }
                 }
-                isPC = false;
-            } else {
-                if (displacement < 2048 || displacement >= -2048) {
-                    isPC = true;
-                } else if(displacement > 2047){
-                    __throw_runtime_error("Displacement out of range");
-                }
-            }
 
-            numberOfOperandsIsZero = false;
+                constImmediateOrIndirect = false;
+            } else{
+                __throw_runtime_error("operand is not in symTable or LitTable");
+            }
 
         } else {
-            __throw_runtime_error("operand is not in sym table");
+            __throw_runtime_error("Error");
         }
-        if (numberOfOperandsIsZero) {
+        if (constImmediateOrIndirect) {
             results = getSimpleDisplacement(address, nextInstructAddress,baseAvailable);
             if (results[0] == 1) {
                 isPC = true;
@@ -214,12 +215,12 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
     }
     if (format == 3) {
         if (operands[0].front() == '#') {
-            if (xbpe = 8) {
+            if (xbpe == 8) {
                 __throw_runtime_error("ERROR can't have immediate with X");
             }
             ni = 1;             //01 immediate
         } else if (operands[0].front() == '@') {
-            if (xbpe = 8) {
+            if (xbpe == 8) {
                 __throw_runtime_error("ERROR can't have indirect with X");
             }
             ni = 2;  //10 indirect
