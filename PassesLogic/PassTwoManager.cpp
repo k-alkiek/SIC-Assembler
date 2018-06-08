@@ -103,24 +103,9 @@ void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
 
 void PassTwoManager::calculateLitrals(map<string,  Literal> literalTable){
     for(int i = 0; i < litrals.size(); i++) {
-        string operand;
-        string litObCode;
-        operand = litrals[i];
-        string temp;
-        if (operand.front() == 'X' && operand[1] == '\'') {
-            if(hexaConverter.hexToDecimal(operand.substr(2, operand.length() - 2)) < 0){
-                temp = "FFFFFF";
-            } else{
-                temp = "000000";
-            }
-            litObCode = temp.substr(operand.length() - 8, operand.length() - 2);
-        } else if (operand.front() == 'C' && operand[1] == '\'') {
-            litObCode = convertCToObjCode(operand.substr(2, operand.length() - 2));
-        } else {
-            __throw_runtime_error("Invalid type");
-        }
-        textRecord.push_back(litObCode);
+        textRecord.push_back(literalTable.at(litrals[i]).getValue());
     }
+    litrals.clear();
 }
 
 string PassTwoManager::convertCToObjCode(string str) {
