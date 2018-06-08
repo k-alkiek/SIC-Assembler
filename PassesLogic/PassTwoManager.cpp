@@ -33,7 +33,7 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
     while (cursor.mnemonic != "END") {
         checkForErrors(cursor);
-        update(cursor);
+        update(cursor,primaryData.literalTable);
         if(noObjCode(cursor.mnemonic)){
             textRecord.push_back("");
             cursor = commands[++itr];
@@ -43,10 +43,10 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
         }
         nextInstructionAddress = commands[itr + 1].address;
-        textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,nextInstructionAddress,commands[itr].address,primaryData.symbolTable,baseAvailable,references));
+        textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,nextInstructionAddress,commands[itr].address,primaryData.symbolTable,primaryData.literalTable,baseAvailable,references));
         cursor = commands[++itr];
     }
-    calculateLitrals();
+    calculateLitrals(primaryData.literalTable);
     DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
     modificationRecords = modificationRecordCalculation.getModificationRecords();
 }
@@ -69,7 +69,7 @@ void PassTwoManager::checkForErrors(Command cursor){
     }
 }
 
-void PassTwoManager::update(Command cursor){
+void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
     if(cursor.mnemonic == "EXTDEF"){
 
         for(int i = 0; i < cursor.operands.size(); i++) {
@@ -92,7 +92,7 @@ void PassTwoManager::update(Command cursor){
         litrals.push_back(cursor.operands[0]);
     }
     if(cursor.mnemonic == "LTORG"){
-        calculateLitrals();
+        calculateLitrals(literalTable);
     }
     if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
 //        vector<string> dRec;
@@ -101,7 +101,7 @@ void PassTwoManager::update(Command cursor){
 
 }
 
-void PassTwoManager::calculateLitrals(){
+void PassTwoManager::calculateLitrals(map<string,  Literal> literalTable){
     for(int i = 0; i < litrals.size(); i++) {
         string operand;
         string litObCode;

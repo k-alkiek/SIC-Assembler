@@ -3,6 +3,7 @@
 #include "CommandsAndUtilities/CommandParser.h"
 #include "PassesLogic/PassOneManager.h"
 #include "PassesLogic/PassTwoManager.h"
+#include "FileManipulators/FileReader.h"
 
 int main() {
 
@@ -49,7 +50,7 @@ int main() {
 
 
 
-//    writer.generateObjectCodeFile("Output.txt",ob,data,records);
+
 
     FileReader reader;
     CommandParser parser;
@@ -61,8 +62,10 @@ int main() {
     PassTwoManager passTwo;
     vector<string> obCode = passTwo.generateObjectCode(primaryData);
     vector<ModificationRecord> mod = passTwo.getModifiactionRecords();
+    vector<string> textRec = passTwo.getTextRecord();
+    for(int i = 0; i < textRec.size(); i++){
+        std::cout << (textRec[i]) << "\n";
+    }
     return 0;
-
-
 
 }

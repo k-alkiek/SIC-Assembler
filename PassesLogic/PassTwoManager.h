@@ -26,8 +26,8 @@ private:
     HexaConverter hexaConverter;
     bool baseAvailable = false;
     void checkForErrors(Command cursor);
-    void update(Command cursor);
-    void calculateLitrals();
+    void update(Command cursor,map<string,  Literal> literalTable);
+    void calculateLitrals(map<string,  Literal> literalTable);
     string convertCToObjCode(string str);
     bool noObjCode(string mnemonic);
 public:
