@@ -19,7 +19,7 @@ vector<string> textRecord;
 HexaConverter hexaConverter;
 bool baseAvailable = false;
 
-vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
+void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;
 

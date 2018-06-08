@@ -60,7 +60,7 @@ int main() {
     PassOneManager passOne;
     PrimaryData primaryData = passOne.loop(commands,wrongCommands);
     PassTwoManager passTwo;
-    vector<string> obCode = passTwo.generateObjectCode(primaryData);
+    passTwo.generateObjectCode(primaryData);
     vector<ModificationRecord> mod = passTwo.getModifiactionRecords();
     vector<string> textRec = passTwo.getTextRecord();
     for(int i = 0; i < textRec.size(); i++){
