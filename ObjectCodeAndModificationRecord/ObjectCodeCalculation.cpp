@@ -123,9 +123,9 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 }
                 isPC = false;
             } else {
-                if (displacement <= 2047) {
+                if (displacement < 2048 || displacement >= -2048) {
                     isPC = true;
-                } else if(displacement > 2047 || displacement < -2048){
+                } else if(displacement > 2047){
                     __throw_runtime_error("Displacement out of range");
                 }
             }

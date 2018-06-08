@@ -39,7 +39,9 @@ vector<string> PassTwoManager::generateObjectCode(PrimaryData primaryData) {
         }
         checkForErrors(cursor);
         update(cursor);
-        modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+        if (cursor.operands.size() != 0) {
+            modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+        }
         nextInstructionAddress = commands[itr + 1].address;
         textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,nextInstructionAddress,commands[itr].address,primaryData.symbolTable,baseAvailable,references));
         cursor = commands[++itr];
@@ -83,7 +85,7 @@ void PassTwoManager::update(Command cursor){
     if(cursor.mnemonic == "NOBASE"){
         baseAvailable = false;
     }
-    if(cursor.operands[0][0] == '='){
+    if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
         litrals.push_back(cursor.operands[0]);
     }
     if(cursor.mnemonic == "LTORG"){
