@@ -10,6 +10,8 @@ public:
     int hexToDecimal(string hexValue);
 
     string decimalToHex(int decimalValue);
+
+    string stringToHex(string str);
 };
 
 

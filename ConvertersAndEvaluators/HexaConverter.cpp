@@ -19,3 +19,11 @@ string HexaConverter::decimalToHex(int decimalValue) {
     transform(res.begin(), res.end(), res.begin(), ::toupper);
     return res;
 }
+
+string HexaConverter::stringToHex(string str) {
+    string hex = "";
+    for (int i = 0; i < str.size(); i++) {
+        hex += decimalToHex(str[i]);
+    }
+    return hex;
+}
