@@ -7,7 +7,7 @@
 #include "../CommandsAndUtilities/Command.h"
 #include "labelInfo.h"
 #include "ExternalSymbolInfo.h"
-#include "../CommandsAndUtilities/Literal.h"
+#include "Literal.h"
 
 
 using namespace std;

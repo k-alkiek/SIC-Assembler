@@ -17,6 +17,7 @@ void Literal::process(string currentLocation) {
 
     if (type == '*' && name.length() == 2) {
         value = currentLocation;
+        space = 3;
     }
     else {
         string rawValue = name.substr(3, name.length() - 4);
@@ -30,14 +31,20 @@ void Literal::process(string currentLocation) {
                 rawValue = "0" + rawValue;
             }
             value = rawValue;
-            space = rawValue.length();
+            space = rawValue.length()/2;
         }
         else if (type == 'W') {
             // TODO Khaled: Handle multiple words
-            if (rawValue.length() != 6) {
+
+            value = hexaConverter.decimalToHex(stoi(rawValue));
+            if (value.length() > 6) {
                 throw exception();
             }
-            value = hexaConverter.decimalToHex(stoi(rawValue));
+            else {
+                while (value.length() < 6) {
+                    value = "0" + value;
+                }
+            }
             space = 3;
         }
 

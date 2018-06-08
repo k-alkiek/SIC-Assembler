@@ -1,11 +1,10 @@
 #include <iostream>
 #include <map>
-#include "../FileManipulators/FileReader.h"
 #include "../DTOs/PrimaryData.h"
 #include "../DTOs/labelInfo.h"
 #include "../DTOs/ErrorMsg.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
-#include "../CommandsAndUtilities/Literal.h"
+#include "../DTOs/Literal.h"
 
 using namespace std;
 class PassOneManager {
@@ -15,7 +14,7 @@ private:
     int locationCounter;
     int programLength;
     HexaConverter hexaConverter;
-    void dumpLiterals(vector<string> literalsBuffer);
+    vector<ErrorMsg> dumpLiterals(vector<pair<string, int>> literalsBuffer);
     string getCurrentLocation();
     labelInfo getOperandValue(string operand);
 

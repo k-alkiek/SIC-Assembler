@@ -91,7 +91,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             }
 
             vector<ErrorMsg> literalErrorMessages = dumpLiterals(literalsBuffer);
-            for (auto literalErrorMessage : literalErrorMessages) {
+            for (ErrorMsg literalErrorMessage : literalErrorMessages) {
                 newWrongCommands.push_back(literalErrorMessage);
             }
 
@@ -126,7 +126,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         }
 
         if (command.operands.front()[0] == '=') {     //literal operand
-            if (symbolTable.find(command.operands.front()) == symbolTable.end()) {
+            if (literalTable.find(command.operands.front()) == literalTable.end()) {
                 literalsBuffer.push_back(make_pair(command.operands.front(), count));
             }
         }
@@ -290,20 +290,22 @@ vector<ErrorMsg> PassOneManager::dumpLiterals(vector<pair<string, int>> literals
         string literalName = it->first;
         int count = it->second;
 
-        try {
-            Literal literal = Literal(literalName, getCurrentLocation());
-            literalTable.insert(make_pair(literalName, literal));
-            locationCounter += literal.getSpace();
-            programLength += literal.getSpace();
-        } catch (exception e) {
-            ErrorMsg msg;
-            msg.index = count;
-            msg.msg = "Bad literal";
-            errorMessages.push_back(msg);
+        if (literalTable.find(literalName) == literalTable.end()) {
+            try {
+                Literal literal = Literal(literalName, getCurrentLocation());
+                literalTable.insert(make_pair(literalName, literal));
+                locationCounter += literal.getSpace();
+                programLength += literal.getSpace();
+            } catch (exception e) {
+                ErrorMsg msg;
+                msg.index = count;
+                msg.msg = "Invalid/Bad literal";
+                errorMessages.push_back(msg);
+            }
         }
-
     }
     literalsBuffer.clear();
+    return errorMessages;
 }
 
 string PassOneManager::getCurrentLocation() {
