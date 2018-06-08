@@ -237,6 +237,9 @@ string CommandParser::validateWord(Command command) {
     for(int i = 0 ; i < command.operands.size() ; i++)
     {
         string operand = command.operands[i];
+        bool label_flag = false;
+        if(isalpha(operand.at(0)))
+            label_flag = true;
         if(operand.length() >  4)
         {
             if(operand.at(0) != '-')
@@ -244,6 +247,9 @@ string CommandParser::validateWord(Command command) {
             if(operand.length() > 5)
                 return "Not compatible length";
         }
+
+        if(label_flag)
+            continue;
 
         int j = 0;
         if(operand.at(0) == '-')
