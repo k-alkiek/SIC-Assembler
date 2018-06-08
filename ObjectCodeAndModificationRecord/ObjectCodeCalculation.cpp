@@ -151,7 +151,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
         completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
         return hexaConverter.decimalToHex(completedObjCode);
-    } else { //TODO check if its correct
+    } else {
         return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
@@ -201,7 +201,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
         return hexaConverter.decimalToHex(completedObjCode);
     } else {
-        __throw_runtime_error("RSUB No Rsub in format 4 ");
+        __throw_runtime_error("RSUB No Rsub in format 4 "); //howa mesh shart Rsub
     }
 }
 
@@ -282,9 +282,9 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
         }
         isPC = false;
     } else {
-        if (displacement <= 2047) {
+        if (displacement < 2048 && displacement >= -2048) {
             isPC = true;
-        } else if(displacement > 2047 || displacement < -2048){
+        } else {
             __throw_runtime_error("Displacement out of range");
         }
     }

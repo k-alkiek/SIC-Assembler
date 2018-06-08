@@ -161,7 +161,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
         modRecord.address = hexaConverter.decimalToHex((hexaConverter.hexToDecimal(cursor.address) + 1));
-        modRecord.halfBytes = "003";
+        modRecord.halfBytes = "003"; // TODO check isn't it 03?
         modificationRecords.push_back(modRecord);
     }
 
