@@ -11,6 +11,7 @@
 #include "../CommandsAndUtilities/Command.h"
 #include "../DTOs/labelInfo.h"
 #include "../DTOs/ExternalSymbolInfo.h"
+#include "../DTOs/Literal.h"
 
 
 using namespace std;
@@ -37,7 +38,7 @@ private:
     vector<ExternalSymbolInfo> getDataFromMap(map<string, ExternalSymbolInfo> externalReference);
     bool containsExternalReference (string expression, vector<string> extReferences);
 public:
-    string getObjectCode(Command cursor, string nextInstAdd,string currentInstAdd, map<string, labelInfo> symbolTable, bool isPcFlag,vector<string> externalReference);
+    string getObjectCode(Command cursor, string nextInstAdd,string currentInstAdd, map<string, labelInfo> symbolTable, map<string,  Literal> litTable,bool isPcFlag,vector<string> externalReference);
 
 };
 

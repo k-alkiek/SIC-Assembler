@@ -6,23 +6,26 @@
 #include "../CommandsAndUtilities/CommandIdentifier.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../DTOs/ExternalSymbolInfo.h"
+#include "../DTOs/Literal.h"
 #include <cmath>
 
 
 string nextInstructAddress;
 string currentInstructionAddress;
 map<string, labelInfo> symblTable;
+map<string,  Literal> literalTable;
 HexaConverter hexConverter;
 vector<string> extRef;
 bool isPc;
 
 
 
-string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,bool isPcFlag,vector<string> externalReference) {
+string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,map<string,  Literal> litTable, bool isPcFlag,vector<string> externalReference) {
+    symblTable = symTable;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     OperandHolder operandHolder("", 0);
     nextInstructAddress = nextInstAdd;
-    symblTable = symTable;
+    literalTable = litTable;
     extRef = externalReference;
     currentInstructionAddress = currentInstAdd;
     isPc = isPcFlag;
@@ -108,16 +111,19 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
-            if(symblTable.find(operands[0]) != symblTable.end())
-            label = symblTable.at(operands[0]);
-            address = label.address;
+            if(symblTable.find(operands[0]) != symblTable.end()) {
+                label = symblTable.at(operands[0]);
+                address = label.address;
+            } else if(literalTable.find(operands[0]) != literalTable.end()){
+                address = literalTable.at(operands[0]).getAddress();
+            }
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
             if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
                 label = symblTable.at(operands[0].substr(1, operands[0].length() - 1));
                 address = label.address;
-            } else if(false/*litTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()*/){ //TODO barie must have finished litTable
-               // label = litTable.at(operands[0].substr(1, operands[0].length() - 1));
-                address = label.address;
+            } else if(literalTable.find(operands[0].substr(1, operands[0].length() - 1)) != literalTable.end()){
+                address = literalTable.at(operands[0].substr(1, operands[0].length() - 1)).getAddress();
+
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
                 displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if(baseAvailable){
