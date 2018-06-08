@@ -56,14 +56,14 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                                                                          vector<string> definitions) {
     //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
     string address;
-    string halfBytes;
-    if (!constant) {
-        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
-        halfBytes = "05";
-    } else {
-        address = addressInput;
-        halfBytes = "06";
-    }
+//    string halfBytes;
+//    if (!constant) {
+//        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
+//        halfBytes = "05";
+//    } else {
+//        address = addressInput;
+//        halfBytes = "06";
+//    }
 
     for (int i = 0; i < definitions.size(); i++) {
         string exp = expression;
@@ -73,7 +73,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
             modRecord.index = itr;
             modRecord.labelToBeAdded = extReferences[i];
             modRecord.address = address;
-            modRecord.halfBytes = halfBytes;
+//            modRecord.halfBytes = halfBytes;
             if (exp.at(position - 1) == '+') {
                 modRecord.operation = "+";
             } else if (exp.at(position - 1) == '-') {
@@ -97,7 +97,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
             counter ++;
         }
         modRecord.address = address;
-        modRecord.halfBytes = halfBytes;
+//        modRecord.halfBytes = halfBytes;
         modificationRecord.push_back(modRecord);
     }
 }
@@ -115,7 +115,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             modRecord.labelToBeAdded = progName;
             modRecord.operation = "+";
             modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-            modRecord.halfBytes = "05";
+//            modRecord.halfBytes = "05";
             modificationRecord.push_back(modRecord);
         } else {
             //have ext ref
@@ -141,7 +141,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
                 modRecord.labelToBeAdded = progName;
                 modRecord.operation = "+";
                 modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 1));
-                modRecord.halfBytes = "06";
+//                modRecord.halfBytes = "06";
                 modificationRecord.push_back(modRecord);
             } else if (isExpression(cursor.operands[i]) && containsExternalReference(cursor.operands[0], references)) {
                 // it has absolute expression that contains ext ref
@@ -152,7 +152,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         }
 
     }
-    //TODO dih 8alat mafeesh modification record l format 3
+    //dih 8alat mafeesh modification record l format 3
         //TODO check *= and * to modify
     else if(cursor.operands[0] == "*"){
         //the star mod rec
@@ -161,7 +161,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
         modRecord.labelToBeAdded = progName;
         modRecord.operation = "+";
         modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-        modRecord.halfBytes = "003"; // TODO check isn't it 03?
+//        modRecord.halfBytes = "003";
         modificationRecord.push_back(modRecord);
     }
 
