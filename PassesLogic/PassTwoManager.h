@@ -10,6 +10,11 @@ using namespace std;
 
 class PassTwoManager {
 
+private:
+    void checkForErrors(Command cursor);
+    void update(Command cursor);
+    void calculateLitrals();
+    string convertCToObjCode(string str);
 public:
     vector<string> generateObjectCode(PrimaryData primaryData);
     vector<vector<string>> getModifiactionRecords();

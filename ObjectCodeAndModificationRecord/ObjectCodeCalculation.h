@@ -34,9 +34,10 @@ private:
 
     string convertCToObjCode(basic_string<char, char_traits<char>, allocator<char>> basic_string);
     bool is_number(string s);
-
+    vector<ExternalSymbolInfo> getDataFromMap(map<string, ExternalSymbolInfo> externalReference);
+    bool containsExternalReference (string expression, vector<string> extReferences);
 public:
-    string getObjectCode(Command cursor, string locationCounter, map<string, labelInfo> symbolTable, bool isPcFlag,map<string, ExternalSymbolInfo> externalReference);
+    string getObjectCode(Command cursor, string nextInstAdd,string currentInstAdd, map<string, labelInfo> symbolTable, bool isPcFlag,vector<string> externalReference);
 
 };
 
