@@ -79,7 +79,7 @@ vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
 char CommandParser::validateLineRegex(string line){
 
     regex c("\\s*\\.+[^\\n]*\\s*");
-    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',-]*\\s*[!@#$%^&*()|\\s;:\"'\\.A-Za-z0-9]*");
+    regex r("[!@#$%^&*()|\\s;:\"']*[A-Za-z0-9]{0,10}[!@#$%^&*()|\\s;:\"']*\\+?[A-Za-z]{1,7}[!@#$%^&*()|\\s;:\"']*[\\d#@+\\w=',-]*\\s*[!@#$%^&*()|\\s;:\"'/.A-Za-z0-9]*");
     regex s("\\s+");
     smatch m;
 

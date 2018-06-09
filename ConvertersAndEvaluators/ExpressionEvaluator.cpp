@@ -15,7 +15,7 @@ OperandHolder ExpressionEvaluator::evaluateExpression(string expression, string 
         __throw_runtime_error("Empty expression");
 
     labelInfo locctr_label;
-    locctr_label.type = "relative";
+    locctr_label.type = "Relative";
     locctr_label.address = locctr;
     this->symtable.insert(pair<string, labelInfo>("LOCCTR",locctr_label));
 
@@ -44,7 +44,7 @@ void ExpressionEvaluator::parse_expression(vector<string>* labels, vector<char>*
             if(label_container.empty()) // operator at the beginning of expression
             {
                 if(c == '*')
-                    label_container == "LOCCTR";
+                    label_container = "LOCCTR";
                 else
                     __throw_runtime_error("Operator Problem in Expression");
             }
@@ -58,7 +58,8 @@ void ExpressionEvaluator::parse_expression(vector<string>* labels, vector<char>*
         else
             __throw_runtime_error("Invalid symbol in expression");
     }
-    labels->push_back(label_container);
+    if(!(labels->size() == 1 && labels->at(0) == "LOCCTR"))
+        labels->push_back(label_container);
 
     if(labels->size() != (*operators).size()+1)
         __throw_runtime_error("Incompatible number of operands to operations");
@@ -137,7 +138,7 @@ vector<OperandHolder> ExpressionEvaluator::form_operands(vector<string>* labels)
         {
             labelInfo label = this->symtable[(*labels)[i]];
             int type;
-            if(label.type == "relative")
+            if(label.type == "Relative")
                 type = 1;
             else
                 type = 0;
