@@ -28,6 +28,7 @@ bool isPc;
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,map<string,  Literal> litTable, bool isPcFlag,vector<string> externalReference) {
     symblTable = symTable;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
+    expressionEvaluator.extref_tab = externalReference;
     OperandHolder operandHolder("", 0);
     nextInstructAddress = nextInstAdd;
     literalTable = litTable;
