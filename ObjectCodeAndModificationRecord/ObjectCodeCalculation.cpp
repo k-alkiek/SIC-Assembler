@@ -223,7 +223,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             else if(containsExternalReference(operands[0],extRef)){
                 address = "00000";
             } else if(is_number(operands[0])){
-                address = (operands[0].substr(1, operands[0].length() - 1);
+                address = (operands[0].substr(1, operands[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
                     __throw_runtime_error("address is bigger than 20 bit" );
                 }

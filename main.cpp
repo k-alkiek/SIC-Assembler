@@ -31,7 +31,7 @@ int main() {
     for (int i = 0; i < commands.size(); i++) {
         PassOneManager passOne;
         PrimaryData primaryData = passOne.loop(commands[i], wrongCommands[i]);
-        if (wrongCommands[i].size() != 0)
+        if (primaryData.errorMsgsMap.size() != 0)
             noError = false;
         data.push_back(primaryData);
     }
