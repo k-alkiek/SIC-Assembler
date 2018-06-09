@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include "ExpressionEvaluator.h"
+#include <algorithm>
 
 ExpressionEvaluator::ExpressionEvaluator(map<string, labelInfo> symtable, HexaConverter converter) {
     this->symtable = symtable;
@@ -128,8 +129,10 @@ vector<OperandHolder> ExpressionEvaluator::form_operands(vector<string>* labels)
         if(this->symtable.find((*labels)[i]) == this->symtable.end())
             if(isdigit((*labels)[i][0]))
                 operands.push_back(OperandHolder((*labels)[i],0));
-            else
+            else if(std::find(extref_tab.begin(), extref_tab.end(), (*labels)[i]) != this->extref_tab.end())
                 operands.push_back(OperandHolder("0",0));
+            else
+                __throw_runtime_error("Undefined label");
         else
         {
             labelInfo label = this->symtable[(*labels)[i]];
