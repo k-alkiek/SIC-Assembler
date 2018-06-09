@@ -1,14 +1,14 @@
 Copy   START 0000
 extdef  buffer,bufend,length
 extref  rdrec,wrrec
-STL  Retadr
-+JSUB  RDREC
+first STL  Retadr
+cloop +JSUB  RDREC
 LDA length
 COMP #0
 JEQ  Endfil
 +JSUB  WRRec
 J Cloop
-LDA  =c'eof'
+endfil LDA  =c'eof'
 STA buffer
 LDA #3
 STA length
@@ -19,7 +19,7 @@ length RESW 1
 ltorg
 buffer RESB 4096
 bufend equ *
-maxlen equ bufend-buffer
+maxlen equ 4096
 rdrec csect
 extref  buffer,length,bufend
 CLEAR x
