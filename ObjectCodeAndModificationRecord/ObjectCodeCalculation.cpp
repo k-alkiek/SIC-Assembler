@@ -16,6 +16,7 @@ map<string, labelInfo> symblTable;
 map<string,  Literal> literalTable;
 HexaConverter hexConverter;
 vector<string> extRef;
+Command command;
 bool isPc;
 
 
@@ -29,6 +30,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
     extRef = externalReference;
     currentInstructionAddress = currentInstAdd;
     isPc = isPcFlag;
+    command = cursor;
     CommandIdentifier opTable;
     if (cursor.mnemonic == "WORD") {
         string obcode = "";
@@ -70,10 +72,10 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             return hexConverter.decimalToHex(commandObjCode);
         } else if (format == 2) {
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
-        } else if (format == 3 && cursor.operands[0].front() != '+') {
+        } else if (format == 3 && cursor.mnemonic[0] != '+') {
             return completeObjCodeFormat3(commandObjCode, cursor.operands,isPc);
         }
-    }else if(opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
+    }else if(cursor.mnemonic[0] == '+' && opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
         OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1));
         int commandObjCode = hexConverter.hexToDecimal(operationInfo.code);
         return completeObjCodeFormat4(commandObjCode, cursor.operands);
@@ -99,7 +101,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
     labelInfo label;
     int displacement = 0;
     bool isPC;
-    bool constImmediateOrIndirect = true;
+    bool constImmediateOrIndirect = false;
     vector<int> results;
     if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);
@@ -116,6 +118,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 address = label.address;
             } else if(literalTable.find(operands[0]) != literalTable.end()){
                 address = literalTable.at(operands[0]).getAddress();
+            } else{
+                __throw_runtime_error("Operand in not defined");
             }
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
             if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
@@ -139,7 +143,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                     }
                 }
 
-                constImmediateOrIndirect = false;
+                constImmediateOrIndirect = true;
             } else{
                 __throw_runtime_error("operand is not in symTable or LitTable");
             }
@@ -147,7 +151,9 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         } else {
             __throw_runtime_error("Error");
         }
-        if (constImmediateOrIndirect) {
+
+        if (!constImmediateOrIndirect) {
+
             results = getSimpleDisplacement(address, nextInstructAddress,baseAvailable);
             if (results[0] == 1) {
                 isPC = true;
@@ -306,7 +312,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
         }
         isPC = false;
     } else {
-        if (displacement <= 2047 && displacement > -2048) { //error law -4000
+        if (displacement < 2047 || displacement > -2048) { //error law -4000
             isPC = true;
         } else {
             __throw_runtime_error("Displacement out of range");
