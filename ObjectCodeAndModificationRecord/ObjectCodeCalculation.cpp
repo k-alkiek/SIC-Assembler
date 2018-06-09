@@ -114,6 +114,12 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
+            if(operands[0] == "*"){
+                __throw_runtime_error("Can't have * as an operand with format 3");
+            } else if(operands[0] == "=*"){
+                __throw_runtime_error("Can't have =* as an operand with format 3");
+            }
+
             if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;
@@ -132,14 +138,18 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
                 displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if(baseAvailable){
-                    if(displacement > 4095){
-                        __throw_runtime_error("Displacement out of range" );
-                    }
-                    isPC = false;
-                } else {
-                    if (displacement < 2048 || displacement >= -2048) {
+                    if(displacement >= -2048 && displacement < 2048){
                         isPC = true;
-                    } else if(displacement > 2047){
+                    } else if(displacement >= 2048 && displacement < 4096){
+                        isPC = false;
+                    } else{
+                        __throw_runtime_error("Displacement out of range");
+                    }
+
+                } else {
+                    if (displacement < 2048 && displacement >= -2048) {
+                        isPC = true;
+                    } else {
                         __throw_runtime_error("Displacement out of range");
                     }
                 }
@@ -196,19 +206,28 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
                 if (stoi(address) > pow(2, 20)) {
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
+            } else if(operands[0][1] == '*'){
+                address = currentInstructionAddress;
+            } else{
+                __throw_runtime_error("invalid operand");
             }
 
         } else {
             if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;
-            } else if(containsExternalReference(operands[0],extRef)){
+            }else if(literalTable.find(operands[0]) != literalTable.end()){
+                address = literalTable.at(operands[0]).getAddress();
+            }
+            else if(containsExternalReference(operands[0],extRef)){
                 address = "00000";
             } else if(is_number(operands[0])){
                 address = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
                     __throw_runtime_error("address is bigger than 20 bit" );
                 }
+            } else if(operands[0] == "*"){
+                address = currentInstructionAddress;
             } else{
                 __throw_runtime_error("Invaled operand");
             }
@@ -216,7 +235,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        string value = "0000" +  hexConverter.decimalToHex(completedObjCode);
+        string value = "0000000000000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
         __throw_runtime_error("RSUB No Rsub in format 4");
@@ -308,12 +327,16 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
     displacement = targetAdd - programCount;
 
     if(baseAvailable){
-        if(displacement > 4095 || displacement < 0){
-            __throw_runtime_error("Displacement out of range " );
+        if(displacement >= -2048 && displacement < 2048){
+            isPC = true;
+        } else if(displacement >= 2048 && displacement < 4096){
+            isPC = false;
+        } else{
+            __throw_runtime_error("Displacement out of range");
         }
-        isPC = false;
+
     } else {
-        if (displacement < 2047 || displacement > -2048) { //error law -4000
+        if (displacement < 2048 && displacement >= -2048) {
             isPC = true;
         } else {
             __throw_runtime_error("Displacement out of range");
@@ -327,7 +350,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
 bool ObjectCodeCalculation::isExpression(string operand) {
     if (operand.find('+') != std::string::npos
         || operand.find('-') != std::string::npos
-        || (operand.find('*') != std::string::npos && operand.length() != 1)
+        || (operand.find('*') != std::string::npos && operand.length() != 1 && operand.length() != 2)
         || operand.find('/') != std::string::npos) {
         return true;
     }

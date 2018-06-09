@@ -158,10 +158,6 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
     }
-    else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*"){
-        //TODO handle error if it's format 3
-    }
-
 }
 
 void ModificationRecordCalculation::astrickModificationRecord(int index, Command cursor) {
@@ -196,9 +192,12 @@ int ModificationRecordCalculation::checkAddProgName(string expression,vector<str
 
 void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string> references){
 
-    if(isExpression(cursor.operands[0]) && expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
-       && cursor.mnemonic[0] != '+'){
-        __throw_runtime_error("can't have absolute expression with format other than 4 ");
+    if(isExpression(cursor.operands[0]) ) {
+        if (expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
+            && cursor.mnemonic[0] != '+') {
+            __throw_runtime_error("can't have absolute expression with format other than 4 ");
+
+        }
     }
     if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF"){
         __throw_runtime_error("can't have extRef with format other than 4 at line");
@@ -207,7 +206,7 @@ void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string>
 
 bool ModificationRecordCalculation::isExpression(string operand) {
     if (operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
-        (operand.find('*') != std::string::npos && operand.length() != 1) || operand.find('/') != std::string::npos) {
+        (operand.find('*') != std::string::npos && (operand.length() != 1 && operand.length() != 2)) || operand.find('/') != std::string::npos) {
         return true;
     }
     return false;
