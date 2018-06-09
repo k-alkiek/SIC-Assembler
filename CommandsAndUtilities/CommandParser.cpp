@@ -23,7 +23,7 @@ vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
             continue;
         }
         else if(c == 'n') {
-            if(lines[i] == "")
+            if(lines[i].empty())
             {
                 commentCount++;
                 continue;
@@ -44,15 +44,14 @@ vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
         string cond = validateLineSyntax(line);
 
         if(cond == " ") {
-            if(line.mnemonic == "END")
-                for(int j = i; j < lines.size() ; j++)
-                    if(lines[i].find("END") != std::string::npos)
-                    {
+            if(line.mnemonic == "END") {
+                for (int j = i + 1; j < lines.size(); j++)
+                    if (lines[j].find("END") != std::string::npos) {
                         ErrorMsg errorMsg;
                         errorMsg.setAttrib(i - commentCount - sectCount, "Misplaced END");
                         wrongCommands.back().push_back(errorMsg);
                     }
-
+            }
             else if (line.mnemonic == "CSECT") {
                 Command end_command;
                 end_command.mnemonic = "END";
@@ -260,9 +259,9 @@ string CommandParser::validateWord(Command command) {
     {
         string operand = command.operands[i];
         bool label_flag = false;
-        if(isalpha(operand.at(0)))
+        if(isalpha(operand.at(0)) || operand.at(0) == '*')
             label_flag = true;
-        if(operand.length() >  4)
+        else if(operand.length() >  4)
         {
             if(operand.at(0) != '-')
                 return "Not compatible length";

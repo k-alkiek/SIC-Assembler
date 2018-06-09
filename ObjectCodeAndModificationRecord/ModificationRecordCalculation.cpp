@@ -80,7 +80,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                 modRecord.operation = "-";
             }
             modificationRecord.push_back(modRecord);
-            exp = exp.substr(position + definitions[i].size(), exp.size());
+            exp = exp.substr(position + extReferences[i].size(), exp.size());
         }
     }
 
