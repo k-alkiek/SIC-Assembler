@@ -9,7 +9,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
     vector<PrimaryData>::iterator dataIterator;
     for (dataIterator = data.begin(); dataIterator !=  data.end() ; ++dataIterator) {
 
-
+        count = 0;
         file << "program name: " << (*dataIterator).programName << "\nProgram size: " << (*dataIterator).programLength
              << "\n\n";
         file << "line    address     label     mnemonics     operands\n";
@@ -45,7 +45,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
             if ((*it).operands.size() != 0) {
                 for (int i = 0; i < (*it).operands.size() - 1; ++i) {
-                    file << (*it).operands.at(0) << ",";
+                    file << (*it).operands.at(i) << ",";
                 }
                 file << (*it).operands.at((*it).operands.size() - 1) << "\n";
             } else {

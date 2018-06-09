@@ -12,6 +12,10 @@ int main() {
     PassOneManager manager;
     vector<PrimaryData> data;
 
+    std::ofstream logFile;
+    logFile.open("logout.txt", std::ofstream::out | std::ofstream::trunc);
+    logFile.close();
+
     vector<string> lines = reader.readFile("/home/mostafa/CLionProjects/SIC-Assembler/test2.txt");
     if (lines.size() == 0) {
 
