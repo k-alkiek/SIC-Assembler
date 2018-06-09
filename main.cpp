@@ -42,9 +42,9 @@ int main() {
         for (int i = 0; i < data.size(); i++) {
 
             PassTwoManager passTwo;
-            passTwo.generateObjectCode(data[i]);
-            vector<ModificationRecord> mod = passTwo.getModifiactionRecords();
-            vector<string> textRec = passTwo.getTextRecord();
+            PassTwoData results = passTwo.generateObjectCode(data[i]);
+            vector<ModificationRecord> mod = results.modificationRecords;
+            vector<string> textRec = results.textRecord;
             objectCode.push_back(textRec);
             modificationRecords.push_back(mod);
         }

@@ -2,22 +2,12 @@
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../ObjectCodeAndModificationRecord/ObjectCodeCalculation.h"
 #include "../ObjectCodeAndModificationRecord/ModificationRecordCalculation.h"
+#include "../DTOs/PassTwoData.h"
 #include <cmath>
 #include <sstream>
 
 
-string nextInstructionAddress;
-//vector<vector<string>> DefRecord;
-vector<ModificationRecord> modificationRecords;
-vector<string> definitions;
-vector<string> references;
-CommandIdentifier commandIdentifier;
-//map<string, string> defRecordUnsorted;
-//map<string, string> extDefinitions;
-vector<string> litrals;
-vector<string> textRecord;
-HexaConverter hexaConverter;
-bool baseAvailable = false;
+
 
 //TODO test cases
 /**
@@ -27,62 +17,78 @@ bool baseAvailable = false;
  * test literals
  * test lecture examples
  */
-void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
+CommandIdentifier commandIdentifier;
+PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;
-
+    PassTwoData data;
     modificationRecordCalculation.setPrimaryDataNeeded(primaryData.commands[0].label, primaryData.symbolTable);
 
     Command cursor;
     vector<Command> commands = primaryData.commands;
     cursor = commands[0];
-    nextInstructionAddress = primaryData.startingAddress;
-    int itr = 1;
+    data.nextInstructionAddress = primaryData.startingAddress;
+    int itr = 0;
 
     while (cursor.mnemonic != "END") {
         try {
-            checkForErrors(cursor);
-            update(cursor, primaryData.literalTable);
+            checkForErrors(cursor,data);
+            if(cursor.mnemonic == "EXTREF"){
+                data.references = updateDataVectors(cursor,data.references);
+            } else if(cursor.mnemonic == "EXTDEF"){
+                data.definitions = updateDataVectors(cursor,data.definitions);
+            } else if(cursor.mnemonic == "BASE"){
+                data.baseAvailable = true;
+            } else if(cursor.mnemonic == "NOBASE"){
+                data.baseAvailable = false;
+            } else if(cursor.mnemonic == "LTORG"){
+                for(int i = 0; i < data.litrals.size(); i++) {
+                    data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
+                }
+                data.litrals.clear();
+
+            }
+            if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
+                data.litrals.push_back(cursor.operands[0]);
+            }
             if (noObjCode(cursor.mnemonic)) {
                 if(cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG"){
                     if(cursor.operands[0] == "*"){
-                        modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+                        modificationRecordCalculation.addModificationRecord(cursor, itr, data.definitions, data.references);
                     }
                 }
-                textRecord.push_back("");
+                data.textRecord.push_back("");
                 cursor = commands[++itr];
                 continue;
             }
             if (cursor.operands.size() != 0) {
-                modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+                modificationRecordCalculation.addModificationRecord(cursor, itr, data.definitions, data.references);
             }
-            nextInstructionAddress = commands[itr + 1].address;
-            textRecord.push_back(
-                    objectCodeCalculator.getObjectCode(cursor, nextInstructionAddress, commands[itr].address,
-                                                       primaryData.symbolTable, primaryData.literalTable, baseAvailable,
-                                                       references));
+            data.nextInstructionAddress = commands[itr + 1].address;
+            data.textRecord.push_back(
+                    objectCodeCalculator.getObjectCode(cursor, data.nextInstructionAddress, commands[itr].address,
+                                                       primaryData.symbolTable, primaryData.literalTable, data.baseAvailable,
+                                                       data.references));
             cursor = commands[++itr];
         }catch (const runtime_error& error) {
             std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
             exit(0);
         }
     }
-    calculateLitrals(primaryData.literalTable);
+    for(int i = 0; i < data.litrals.size(); i++) {
+        data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
+    }
+    data.litrals.clear();
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
-    modificationRecords = modificationRecordCalculation.getModificationRecords();
+    data.modificationRecords = modificationRecordCalculation.getModificationRecords();
+    return data;
 }
 
 //vector<vector<string>> PassTwoManager::getDefRecord() {
 //    return DefRecord;
 //}
-vector<ModificationRecord> PassTwoManager::getModifiactionRecords() {
-    return modificationRecords;
-}
-vector<string> PassTwoManager::getTextRecord(){
-    return textRecord;
-}
 
-void PassTwoManager::checkForErrors(Command cursor){
+void PassTwoManager::checkForErrors(Command cursor,PassTwoData data){
     for (int i = 0; i < cursor.operands.size(); i++){
         if(commandIdentifier.isInTable(cursor.operands[i])){
             __throw_runtime_error("Invalid operand");
@@ -90,48 +96,19 @@ void PassTwoManager::checkForErrors(Command cursor){
     }
 }
 
-void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
-    if(cursor.mnemonic == "EXTDEF"){
-
-        for(int i = 0; i < cursor.operands.size(); i++) {
-//            extDefinitions.insert(std::pair<string, string>(cursor.operands[i], cursor.operands[i]));
-            definitions.push_back(cursor.operands[i]);
-        }
+vector<string> PassTwoManager::updateDataVectors(Command cursor,vector<string> data){
+    vector<string> temp = data;
+    for(int i = 0; i < cursor.operands.size(); i++) {
+        temp.push_back(cursor.operands[i]);
     }
-    if(cursor.mnemonic == "EXTREF"){
-        for(int i = 0; i < cursor.operands.size(); i++) {
-            references.push_back(cursor.operands[i]);
-        }
-    }
-    if(cursor.mnemonic == "BASE"){
-        baseAvailable = true;
-    }
-    if(cursor.mnemonic == "NOBASE"){
-        baseAvailable = false;
-    }
-    if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
-        litrals.push_back(cursor.operands[0]);
-    }
-    if(cursor.mnemonic == "LTORG"){
-        calculateLitrals(literalTable);
-    }
-//    if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
-//        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
-//    }
-
+    return temp;
 }
 
-void PassTwoManager::calculateLitrals(map<string,  Literal> literalTable){
-    for(int i = 0; i < litrals.size(); i++) {
-        textRecord.push_back(literalTable.at(litrals[i]).getValue());
-    }
-    litrals.clear();
-}
 
-string PassTwoManager::convertCToObjCode(string str) {
+string PassTwoManager::convertCToObjCode(string str,PassTwoData data) {
     string asciiString = "";
     for (int i = 0; i < str.length(); i++) {
-        asciiString += hexaConverter.decimalToHex(str[i]);
+        asciiString += data.hexaConverter.decimalToHex(str[i]);
     }
     return asciiString;
 }

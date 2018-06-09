@@ -7,6 +7,7 @@
 #include "../DTOs/ModificationRecord.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 #include "../CommandsAndUtilities/CommandIdentifier.h"
+#include "../DTOs/PassTwoData.h"
 
 
 using namespace std;
@@ -14,27 +15,14 @@ using namespace std;
 class PassTwoManager {
 
 private:
-    string nextInstructionAddress;
-    vector<vector<string>> DefRecord;
-    vector<ModificationRecord> modificationRecords;
-    vector<string> definitions;
-    vector<string> references;
-    map<string, string> defRecordUnsorted;
-    map<string, string> extDefinitions;
-    vector<string> litrals;
-    vector<string> textRecord;
-    HexaConverter hexaConverter;
-    bool baseAvailable = false;
-    void checkForErrors(Command cursor);
-    void update(Command cursor,map<string,  Literal> literalTable);
-    void calculateLitrals(map<string,  Literal> literalTable);
-    string convertCToObjCode(string str);
+    CommandIdentifier commandIdentifier;
+    void checkForErrors(Command cursor,PassTwoData data);
+    string convertCToObjCode(string str,PassTwoData data);
     bool noObjCode(string mnemonic);
+    vector<string> updateDataVectors(Command cursor,vector<string> data);
 public:
-    void generateObjectCode(PrimaryData primaryData);
-    vector<ModificationRecord> getModifiactionRecords();
-    vector<vector<string>> getDefRecord();
-    vector<string> getTextRecord();
+    PassTwoData  generateObjectCode(PrimaryData primaryData);
+
 };
 
 

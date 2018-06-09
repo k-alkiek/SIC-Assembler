@@ -55,7 +55,6 @@ vector<ModificationRecord> ModificationRecordCalculation::getModificationRecords
 void ModificationRecordCalculation::evaluateModificationRecordExpression(bool constant,int itr, string expression,
                                                                          vector<string> extReferences, string addressInput,
                                                                          vector<string> definitions) {
-    //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
     expressionEvaluator.extref_tab = extReferences;
     string address;
 //    string halfBytes;
@@ -137,7 +136,6 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
          */
         string address = cursor.address;
         for(int i = 0; i < cursor.operands.size(); i++) {
-            //TODO momken tedarab exception law kelma wa7da extRef
             //there is a * or it has absolute expression that dosent contain ext ref
             if ((cursor.operands[i].size() == 1
                  && (cursor.operands[i] == "=*"|| cursor.operands[i] == "*"))
