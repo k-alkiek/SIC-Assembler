@@ -7,13 +7,13 @@
 
 
 string nextInstructionAddress;
-vector<vector<string>> DefRecord;
+//vector<vector<string>> DefRecord;
 vector<ModificationRecord> modificationRecords;
 vector<string> definitions;
 vector<string> references;
 CommandIdentifier commandIdentifier;
-map<string, string> defRecordUnsorted;
-map<string, string> extDefinitions;
+//map<string, string> defRecordUnsorted;
+//map<string, string> extDefinitions;
 vector<string> litrals;
 vector<string> textRecord;
 HexaConverter hexaConverter;
@@ -55,13 +55,13 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
         }
     }
     calculateLitrals(primaryData.literalTable);
-    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
+//    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
     modificationRecords = modificationRecordCalculation.getModificationRecords();
 }
 
-vector<vector<string>> PassTwoManager::getDefRecord() {
-    return DefRecord;
-}
+//vector<vector<string>> PassTwoManager::getDefRecord() {
+//    return DefRecord;
+//}
 vector<ModificationRecord> PassTwoManager::getModifiactionRecords() {
     return modificationRecords;
 }
@@ -81,7 +81,7 @@ void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
     if(cursor.mnemonic == "EXTDEF"){
 
         for(int i = 0; i < cursor.operands.size(); i++) {
-            extDefinitions.insert(std::pair<string, string>(cursor.operands[i], cursor.operands[i])); //TODO shofiha sa7 wala 3'alat
+//            extDefinitions.insert(std::pair<string, string>(cursor.operands[i], cursor.operands[i]));
             definitions.push_back(cursor.operands[i]);
         }
     }
@@ -102,10 +102,9 @@ void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
     if(cursor.mnemonic == "LTORG"){
         calculateLitrals(literalTable);
     }
-    if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
-//        vector<string> dRec;
-        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
-    }
+//    if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
+//        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
+//    }
 
 }
 

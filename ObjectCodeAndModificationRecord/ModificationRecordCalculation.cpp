@@ -25,19 +25,19 @@ bool ModificationRecordCalculation::containsExternalReference (string expression
     return false;
 }
 
-vector<vector<string>> ModificationRecordCalculation::setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions) {
-    vector<vector<string>> DefRecord;
-    for (int i = 0; i < definitions.size(); i++) {
-        if (defRecordsUnsorted.find(definitions[i]) != defRecordsUnsorted.end()) {
-            vector<string> rec;
-            rec.push_back(definitions[i]);
-            rec.push_back(defRecordsUnsorted.at(definitions[i]));
-            DefRecord.push_back(rec);
-        } else {
-            __throw_runtime_error("not all definitions are defined in the PROG");
-        }
-    }
-}
+//vector<vector<string>> ModificationRecordCalculation::setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions) {
+//    vector<vector<string>> DefRecord;
+//    for (int i = 0; i < definitions.size(); i++) {
+//        if (defRecordsUnsorted.find(definitions[i]) != defRecordsUnsorted.end()) {
+//            vector<string> rec;
+//            rec.push_back(definitions[i]);
+//            rec.push_back(defRecordsUnsorted.at(definitions[i]));
+//            DefRecord.push_back(rec);
+//        } else {
+//            __throw_runtime_error("not all definitions are defined in the PROG");
+//        }
+//    }
+//}
 
 vector<ModificationRecord> ModificationRecordCalculation::getModificationRecords() {
     return modificationRecord;
@@ -58,13 +58,13 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
     //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
     string address;
 //    string halfBytes;
-//    if (!constant) {
-//        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
+    if (!constant) {
+        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
 //        halfBytes = "05";
-//    } else {
-//        address = addressInput;
+    } else {
+        address = addressInput;
 //        halfBytes = "06";
-//    }
+    }
 
     for (int i = 0; i < extReferences.size(); i++) {
         string exp = expression;
@@ -109,6 +109,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
         //dosent have ext ref
+        //TODO add * case here in format 4
         if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
             || ((isExpression(cursor.operands[0]))
                 && !containsExternalReference(cursor.operands[0], references))) {
@@ -155,7 +156,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
 
     }
     //dih 8alat mafeesh modification record l format 3
-    else if(cursor.operands[0] == "=*"){
+    else if(cursor.operands[0] == "=*"){ //TODO handle error if it's format 3
         //the star mod rec
         ModificationRecord modRecord;
         modRecord.index = index;

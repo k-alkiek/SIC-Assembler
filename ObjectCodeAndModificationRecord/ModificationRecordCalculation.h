@@ -21,16 +21,13 @@ private:
     void evaluateModificationRecordExpression(bool constant,int itr, string expression, vector<string> extReferences,
                                               string addressInput, vector<string> definitions);
     bool isExpression(string operand);
-    bool checkStar(vector<string> operands);
-    vector<string> parseExpression(string expression);
-    bool findInExpression(string word,vector<string> expression);
     int checkAddProgName(string basic_string,vector<string> definitions);
     void checkForErrors(Command cursor,vector<string> references);
 
 public:
     void setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTable);
     void addModificationRecord(Command cursor, int itr, vector<string> definitions, vector<string> references);
-    vector<vector<string>> setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions);
+//    vector<vector<string>> setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions);
     vector<ModificationRecord> getModificationRecords();
 };
 
