@@ -96,13 +96,13 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
 
             file << "\n Literals\n";
-            file << "\n\nname        value          address\n";
+            file << "\n\nname            value          address\n";
             for (map<string, Literal>::const_iterator it = (*dataIterator).literalTable.begin();
                  it != (*dataIterator).literalTable.end(); ++it) {
 
                 file << it->first;
                 tmp = it->first.size();
-                while (tmp < 13) {
+                while (tmp < 16) {
                     file << " ";
                     tmp++;
                 }
@@ -110,7 +110,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
                 Literal literal = it->second;
                 file << literal.getValue();
                 tmp = literal.getValue().length();
-                while (tmp < 14) {
+                while (tmp < 15) {
                     file << " ";
                     tmp++;
                 }
@@ -311,7 +311,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
             result += "0";
             tmp++;
         }
-        result += data[i].programLength + "-\n";
+        result += data[i].programLength + separator+"\n";
         if(data[i].externalSymbols.size() != 0) {
             result += "D" + separator;
             int defLength = 0;
