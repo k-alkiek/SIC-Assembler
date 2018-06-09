@@ -165,6 +165,12 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             if (command.mnemonic.compare("EQU") == 0) {
 
                 ExpressionEvaluator expressionEvaluator = ExpressionEvaluator(symbolTable, hexaConverter);
+
+                vector<string> extrefVector;
+                for(vector<SymbolPosition>::iterator it = externalReferences.begin(); it != externalReferences.end(); ++it) {
+                    extrefVector.push_back(it->name);
+                }
+                expressionEvaluator.extref_tab = extrefVector;
                 try {
                     OperandHolder operandHolder = expressionEvaluator.evaluateExpression(command.operands.front(), getCurrentLocation());
                     labelInfo labelInfo1 = labelInfo();
@@ -179,7 +185,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
                         labelInfo1.address = "0" + labelInfo1.address;
                     }
                     symbolTable[command.label] = labelInfo1;
-                } catch (invalid_argument e) {
+                } catch (runtime_error e) {
                     ErrorMsg msg;
                     msg.index = count;
                     msg.msg = "This expression contains invalid/undefined labels";
