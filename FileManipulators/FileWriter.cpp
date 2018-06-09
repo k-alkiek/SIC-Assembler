@@ -152,56 +152,60 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
             tmp++;
         }
         result += data[i].programLength + "\n";
-        result += "D";
-        int defLength = 0;
-        int defLengthLimit = 73 - 7;
-        for (std::map<string, ExternalSymbolInfo>::iterator iter = data[i].externalSymbols.begin();
-             iter != data[i].externalSymbols.end(); ++iter) {
-            string symbol = iter->first;
-            string externalDef = symbol;
-            tmp = symbol.length();
-            while (tmp < 6) {
-                externalDef += " ";
-                tmp++;
-            }
-            tmp = iter->second.address.length();
-            while (tmp < 6) {
-                externalDef += "0";
-                tmp++;
-            }
-            externalDef += iter->second.address;
+        if(data[i].externalSymbols.size() != 0) {
+            result += "D";
+            int defLength = 0;
+            int defLengthLimit = 73 - 7;
+            for (std::map<string, ExternalSymbolInfo>::iterator iter = data[i].externalSymbols.begin();
+                 iter != data[i].externalSymbols.end(); ++iter) {
+                string symbol = iter->first;
+                string externalDef = symbol;
+                tmp = symbol.length();
+                while (tmp < 6) {
+                    externalDef += " ";
+                    tmp++;
+                }
+                tmp = iter->second.address.length();
+                while (tmp < 6) {
+                    externalDef += "0";
+                    tmp++;
+                }
+                externalDef += iter->second.address;
 
-            if (defLength + externalDef.length() <= defLengthLimit) {
-                result += externalDef;
-                defLength += externalDef.length();
-            } else {
-                result += "\nD" + externalDef;
-                defLength = externalDef.length();
+                if (defLength + externalDef.length() <= defLengthLimit) {
+                    result += externalDef;
+                    defLength += externalDef.length();
+                } else {
+                    result += "\nD" + externalDef;
+                    defLength = externalDef.length();
+                }
             }
+            result += "\n";
         }
-        result += "\nR";
-        int refLength = 0;
-        int refLengthLimit = 73 - 7;
+        if(data[i].externalReference.size() != 0) {
+            result += "R";
+            int refLength = 0;
+            int refLengthLimit = 73 - 7;
 
-        for (std::map<string, ExternalSymbolInfo>::iterator iter = data[i].externalReference.begin();
-             iter != data[i].externalReference.end(); ++iter) {
-            string symbol = iter->first;
-            string externalRef = symbol;
-            tmp = symbol.length();
-            while (tmp < 6) {
-                externalRef += " ";
-                tmp++;
+            for (std::map<string, ExternalSymbolInfo>::iterator iter = data[i].externalReference.begin();
+                 iter != data[i].externalReference.end(); ++iter) {
+                string symbol = iter->first;
+                string externalRef = symbol;
+                tmp = symbol.length();
+                while (tmp < 6) {
+                    externalRef += " ";
+                    tmp++;
+                }
+                if (refLength + externalRef.length() <= refLengthLimit) {
+                    result += externalRef;
+                    refLength += externalRef.length();
+                } else {
+                    result += "\nR" + externalRef;
+                    refLength = externalRef.length();
+                }
             }
-            if (refLength + externalRef.length() <= refLengthLimit) {
-                result += externalRef;
-                refLength += externalRef.length();
-            } else {
-                result += "\nR" + externalRef;
-                refLength = externalRef.length();
-            }
+            result += "\n";
         }
-        result += "\n";
-
         int length = 0;
         int LIMIT = 60;
         string textRecord = "T";
