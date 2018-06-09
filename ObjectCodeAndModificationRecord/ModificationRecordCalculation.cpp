@@ -108,8 +108,11 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
 
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
+        //add * case here in format 4
+        if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+            astrickModificationRecord(index,cursor);
+        }
         //dosent have ext ref
-        //TODO add * case here in format 4
         if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
             || ((isExpression(cursor.operands[0]))
                 && !containsExternalReference(cursor.operands[0], references))) {
@@ -131,11 +134,12 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
          * 3) if it's an expression get it's value and store it in obcode while skipping extRef
          * 4) add Modifications for extRef if it exists.
          */
-        //there is a * or it has absolute expression that dosent contain ext ref
         string address = cursor.address;
         for(int i = 0; i < cursor.operands.size(); i++) {
             //TODO momken tedarab exception law kelma wa7da extRef
-            if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
+            //there is a * or it has absolute expression that dosent contain ext ref
+            if ((cursor.operands[i].size() == 1
+                 && (cursor.operands[i] == "=*"|| cursor.operands[i] == "*"))
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
                     && (symTab.at(cursor.label)).type != "relative")) {
@@ -153,20 +157,21 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             }
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
-
     }
-    //dih 8alat mafeesh modification record l format 3
-    else if(cursor.operands[0] == "=*"){ //TODO handle error if it's format 3
-        //the star mod rec
-        ModificationRecord modRecord;
-        modRecord.index = index;
-        modRecord.labelToBeAdded = progName;
-        modRecord.operation = "+";
-        modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-//        modRecord.halfBytes = "003";
-        modificationRecord.push_back(modRecord);
+    else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*"){
+        //TODO handle error if it's format 3
     }
 
+}
+
+void ModificationRecordCalculation::astrickModificationRecord(int index, Command cursor) {
+    ModificationRecord modRecord;
+    modRecord.index = index;
+    modRecord.labelToBeAdded = progName;
+    modRecord.operation = "+";
+    modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
+//        modRecord.halfBytes = "003"; //mafeesh modification record l format 3
+    modificationRecord.push_back(modRecord);
 }
 
 int ModificationRecordCalculation::checkAddProgName(string expression,vector<string> definitions) {

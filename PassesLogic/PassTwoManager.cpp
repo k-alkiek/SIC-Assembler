@@ -19,6 +19,14 @@ vector<string> textRecord;
 HexaConverter hexaConverter;
 bool baseAvailable = false;
 
+//TODO test cases
+/**
+ * check general expression evaluation
+ * Add EQU and ORG and test modRec and Object Code (we don't add modRec or ObjectCode)
+ * check Astrick and different Modification records
+ * test literals
+ * test lecture examples
+ */
 void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;

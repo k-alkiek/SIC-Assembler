@@ -20,6 +20,7 @@ private:
     bool containsExternalReference(string operands, vector<string> definitions);
     void evaluateModificationRecordExpression(bool constant,int itr, string expression, vector<string> extReferences,
                                               string addressInput, vector<string> definitions);
+    void astrickModificationRecord(int index, Command cursor);
     bool isExpression(string operand);
     int checkAddProgName(string basic_string,vector<string> definitions);
     void checkForErrors(Command cursor,vector<string> references);
