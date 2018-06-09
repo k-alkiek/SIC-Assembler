@@ -195,14 +195,14 @@ int ModificationRecordCalculation::checkAddProgName(string expression,vector<str
 
 void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string> references){
 
-    if(isExpression(cursor.operands[0]) ) {
+    if(isExpression(cursor.operands[0]) && !(cursor.mnemonic == "WORD" || cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG")) {
         if (expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
             && cursor.mnemonic[0] != '+') {
             __throw_runtime_error("can't have absolute expression with format other than 4 ");
 
         }
     }
-    if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF"){
+    if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF" && !(cursor.mnemonic == "WORD" || cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG")){
         __throw_runtime_error("can't have extRef with format other than 4 at line");
     }
 }

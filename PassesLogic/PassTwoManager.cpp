@@ -136,7 +136,8 @@ string PassTwoManager::convertCToObjCode(string str) {
     return asciiString;
 }
 bool PassTwoManager::noObjCode(string mnemonic){
-    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" || mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG"){
+    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" ||
+       mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET"){
         return true;
     }
     return false;
