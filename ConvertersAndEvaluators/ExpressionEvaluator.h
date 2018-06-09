@@ -4,11 +4,13 @@
 #include "HexaConverter.h"
 #include "../DTOs/labelInfo.h"
 #include "../DTOs/OperandHolder.h"
+#include "../DTOs/ExternalSymbolInfo.h"
 
 using namespace std;
 class ExpressionEvaluator {
 public:
     map<string,labelInfo> symtable;
+    vector<string> extref_tab;
     HexaConverter converter;
 
     ExpressionEvaluator(map<string,labelInfo> symtable, HexaConverter converter);

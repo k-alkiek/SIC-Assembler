@@ -98,6 +98,7 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
 
 string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands, bool baseAvailable) {
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
+    expressionEvaluator.extref_tab = extRef;
     OperandHolder operandHolder("", 0);
     labelInfo label;
     int displacement = 0;
