@@ -35,7 +35,7 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 
     Command cursor;
     vector<Command> commands = primaryData.commands;
-    cursor = commands[1];
+    cursor = commands[0];
     nextInstructionAddress = primaryData.startingAddress;
     int itr = 1;
 
@@ -137,7 +137,7 @@ string PassTwoManager::convertCToObjCode(string str) {
 }
 bool PassTwoManager::noObjCode(string mnemonic){
     if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" ||
-       mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET"){
+       mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET" || mnemonic == "START"){
         return true;
     }
     return false;
