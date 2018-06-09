@@ -3,6 +3,7 @@
 #include "../DTOs/ErrorMsg.h"
 #include "../DTOs/SymbolPosition.h"
 #include "../DTOs/ExternalSymbolInfo.h"
+#include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include <stdio.h>
 PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
@@ -162,12 +163,26 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             }
 
             if (command.mnemonic.compare("EQU") == 0) {
+
+                ExpressionEvaluator expressionEvaluator = ExpressionEvaluator(symbolTable, hexaConverter);
                 try {
-                    symbolTable[command.label] = getOperandValue(command.operands.front());
+                    OperandHolder operandHolder = expressionEvaluator.evaluateExpression(command.operands.front(), getCurrentLocation());
+                    labelInfo labelInfo1 = labelInfo();
+                    labelInfo1.address = operandHolder.value;
+                    if (operandHolder.type == 0) {
+                        labelInfo1.type = "Absolute";
+                    } else {
+                        labelInfo1.type = "Relative";
+                    }
+
+                    while (labelInfo1.address.length() < 4) {
+                        labelInfo1.address = "0" + labelInfo1.address;
+                    }
+                    symbolTable[command.label] = labelInfo1;
                 } catch (invalid_argument e) {
                     ErrorMsg msg;
                     msg.index = count;
-                    msg.msg = "The label " + command.operands.at(0) + " hasn't been yet defined";
+                    msg.msg = "This expression contains invalid/undefined labels";
                     newWrongCommands.push_back(msg);
                     ++it;
                     continue;
