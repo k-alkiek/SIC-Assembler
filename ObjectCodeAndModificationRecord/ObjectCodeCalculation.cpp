@@ -169,7 +169,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         string final = "000000" + hexConverter.decimalToHex(completedObjCode);
         return (final).substr(final.length() - 6, final.length() - 1);
     } else {
-        return "4C"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
