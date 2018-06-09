@@ -16,6 +16,8 @@ map<string, labelInfo> symblTable;
 map<string,  Literal> literalTable;
 HexaConverter hexConverter;
 vector<string> extRef;
+Command command;
+int commandIndex;
 bool isPc;
 
 
@@ -29,6 +31,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
     extRef = externalReference;
     currentInstructionAddress = currentInstAdd;
     isPc = isPcFlag;
+    command = cursor;
     CommandIdentifier opTable;
     if (cursor.mnemonic == "WORD") {
         string obcode = "";
@@ -70,10 +73,10 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
             return hexConverter.decimalToHex(commandObjCode);
         } else if (format == 2) {
             return completeObjCodeFormat2(commandObjCode, cursor.operands);
-        } else if (format == 3 && cursor.operands[0].front() != '+') {
+        } else if (format == 3 && cursor.mnemonic[0] != '+') {
             return completeObjCodeFormat3(commandObjCode, cursor.operands,isPc);
         }
-    }else if(opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
+    }else if(cursor.mnemonic[0] == '+' && opTable.isInTable(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1))){
         OperationInfo operationInfo = opTable.getInfo(cursor.mnemonic.substr(1,cursor.mnemonic.size() - 1));
         int commandObjCode = hexConverter.hexToDecimal(operationInfo.code);
         return completeObjCodeFormat4(commandObjCode, cursor.operands);
@@ -99,7 +102,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
     labelInfo label;
     int displacement = 0;
     bool isPC;
-    bool constImmediateOrIndirect = true;
+    bool constImmediateOrIndirect = false;
     vector<int> results;
     if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);
@@ -111,11 +114,16 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
+            if(operands[0] == "*"){
+                address = currentInstructionAddress;
+            }
             if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;
             } else if(literalTable.find(operands[0]) != literalTable.end()){
                 address = literalTable.at(operands[0]).getAddress();
+            } else{
+                __throw_runtime_error("Operand is not defined");
             }
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
             if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
@@ -127,27 +135,33 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
                 displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if(baseAvailable){
-                    if(displacement > 4095){
+                    if(displacement >= -2048 && displacement < 2048){
+                        isPC = true;
+                    } else if(displacement >= 2048 && displacement < 4096){
+                        isPC = false;
+                    } else{
                         __throw_runtime_error("Displacement out of range");
                     }
-                    isPC = false;
+
                 } else {
-                    if (displacement < 2048 || displacement >= -2048) {
+                    if (displacement < 2048 && displacement >= -2048) {
                         isPC = true;
-                    } else if(displacement > 2047){
+                    } else {
                         __throw_runtime_error("Displacement out of range");
                     }
                 }
 
-                constImmediateOrIndirect = false;
+                constImmediateOrIndirect = true;
             } else{
                 __throw_runtime_error("operand is not in symTable or LitTable");
             }
 
         } else {
-            __throw_runtime_error("Error");
+            __throw_runtime_error("invalid instruction");
         }
-        if (constImmediateOrIndirect) {
+
+        if (!constImmediateOrIndirect) {
+
             results = getSimpleDisplacement(address, nextInstructAddress,baseAvailable);
             if (results[0] == 1) {
                 isPC = true;
@@ -162,7 +176,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         string final = "000000" + hexConverter.decimalToHex(completedObjCode);
         return (final).substr(final.length() - 6, final.length() - 1);
     } else {
-        return "4C"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
     }
 }
 
@@ -189,19 +203,28 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
                 if (stoi(address) > pow(2, 20)) {
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
+            } else if(operands[0][1] == '*'){
+                address = currentInstructionAddress;
+            } else{
+                __throw_runtime_error("invalid operand");
             }
 
         } else {
             if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;
-            } else if(containsExternalReference(operands[0],extRef)){
+            }else if(literalTable.find(operands[0]) != literalTable.end()){
+                address = literalTable.at(operands[0]).getAddress();
+            }
+            else if(containsExternalReference(operands[0],extRef)){
                 address = "00000";
             } else if(is_number(operands[0])){
                 address = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
-                    __throw_runtime_error("address is bigger than 20 bit");
+                    __throw_runtime_error("address is bigger than 20 bit" );
                 }
+            } else if(operands[0] == "*"){
+                address = currentInstructionAddress;
             } else{
                 __throw_runtime_error("Invaled operand");
             }
@@ -209,10 +232,10 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
         completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
-        string value = "0000" +  hexConverter.decimalToHex(completedObjCode);
+        string value = "0000000000000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
-        __throw_runtime_error("RSUB No Rsub in format 4 ");
+        __throw_runtime_error("RSUB No Rsub in format 4");
     }
 }
 
@@ -301,12 +324,16 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
     displacement = targetAdd - programCount;
 
     if(baseAvailable){
-        if(displacement > 4095 || displacement < 0){
+        if(displacement >= -2048 && displacement < 2048){
+            isPC = true;
+        } else if(displacement >= 2048 && displacement < 4096){
+            isPC = false;
+        } else{
             __throw_runtime_error("Displacement out of range");
         }
-        isPC = false;
+
     } else {
-        if (displacement <= 2047 && displacement > -2048) { //error law -4000
+        if (displacement < 2048 && displacement >= -2048) {
             isPC = true;
         } else {
             __throw_runtime_error("Displacement out of range");
@@ -320,7 +347,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
 bool ObjectCodeCalculation::isExpression(string operand) {
     if (operand.find('+') != std::string::npos
         || operand.find('-') != std::string::npos
-        || (operand.find('*') != std::string::npos && operand.length() != 1)
+        || (operand.find('*') != std::string::npos && operand.length() != 1 && operand.length() != 2)
         || operand.find('/') != std::string::npos) {
         return true;
     }

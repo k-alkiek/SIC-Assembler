@@ -9,6 +9,7 @@ string progName;
 map<string, labelInfo> symTab;
 HexaConverter hexConvertor;
 vector<ModificationRecord> modificationRecord;
+
 ExpressionEvaluator expressionEvaluator(symTab, hexConvertor);
 void ModificationRecordCalculation::setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTab) {
     progName = name;
@@ -57,13 +58,13 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
     //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
     string address;
 //    string halfBytes;
-//    if (!constant) {
-//        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
+    if (!constant) {
+        address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
 //        halfBytes = "05";
-//    } else {
-//        address = addressInput;
+    } else {
+        address = addressInput;
 //        halfBytes = "06";
-//    }
+    }
 
     for (int i = 0; i < extReferences.size(); i++) {
         string exp = expression;
@@ -104,9 +105,13 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
 
 void ModificationRecordCalculation::addModificationRecord(Command cursor, int index, vector<string> definitions,
                                            vector<string> references) {
+
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
-        //TODO add * case here
+        //add * case here in format 4
+        if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+            astrickModificationRecord(index,cursor);
+        }
         //dosent have ext ref
         if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
             || ((isExpression(cursor.operands[0]))
@@ -129,11 +134,12 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
          * 3) if it's an expression get it's value and store it in obcode while skipping extRef
          * 4) add Modifications for extRef if it exists.
          */
-        //there is a * or it has absolute expression that dosent contain ext ref
         string address = cursor.address;
         for(int i = 0; i < cursor.operands.size(); i++) {
             //TODO momken tedarab exception law kelma wa7da extRef
-            if ((cursor.operands[i].size() == 1 && cursor.operands[i] == "*")
+            //there is a * or it has absolute expression that dosent contain ext ref
+            if ((cursor.operands[i].size() == 1
+                 && (cursor.operands[i] == "=*"|| cursor.operands[i] == "*"))
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
                     && (symTab.at(cursor.label)).type != "relative")) {
@@ -151,20 +157,19 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             }
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
-
+    } else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+        astrickModificationRecord(index,cursor);
     }
-    //dih 8alat mafeesh modification record l format 3
-    else if(cursor.operands[0] == "=*"){ //TODO no * in format 3
-        //the star mod rec
-        ModificationRecord modRecord;
-        modRecord.index = index;
-        modRecord.labelToBeAdded = progName;
-        modRecord.operation = "+";
-        modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-//        modRecord.halfBytes = "003";
-        modificationRecord.push_back(modRecord);
-    }
+}
 
+void ModificationRecordCalculation::astrickModificationRecord(int index, Command cursor) {
+    ModificationRecord modRecord;
+    modRecord.index = index;
+    modRecord.labelToBeAdded = progName;
+    modRecord.operation = "+";
+    modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
+//        modRecord.halfBytes = "003"; //mafeesh modification record l format 3
+    modificationRecord.push_back(modRecord);
 }
 
 int ModificationRecordCalculation::checkAddProgName(string expression,vector<string> definitions) {
@@ -189,18 +194,21 @@ int ModificationRecordCalculation::checkAddProgName(string expression,vector<str
 
 void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string> references){
 
-    if(isExpression(cursor.operands[0]) && expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
-       && cursor.mnemonic[0] != '+'){
-        __throw_runtime_error("can't have absolute expression with format other than 4");
+    if(isExpression(cursor.operands[0]) ) {
+        if (expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
+            && cursor.mnemonic[0] != '+') {
+            __throw_runtime_error("can't have absolute expression with format other than 4 ");
+
+        }
     }
     if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF"){
-        __throw_runtime_error("can't have extRef with format other than 4");
+        __throw_runtime_error("can't have extRef with format other than 4 at line");
     }
 }
 
 bool ModificationRecordCalculation::isExpression(string operand) {
     if (operand.find('+') != std::string::npos || operand.find('-') != std::string::npos ||
-        (operand.find('*') != std::string::npos && operand.length() != 1) || operand.find('/') != std::string::npos) {
+        (operand.find('*') != std::string::npos && (operand.length() != 1 && operand.length() != 2)) || operand.find('/') != std::string::npos) {
         return true;
     }
     return false;

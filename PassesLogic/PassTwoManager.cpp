@@ -13,12 +13,20 @@ vector<string> definitions;
 vector<string> references;
 CommandIdentifier commandIdentifier;
 //map<string, string> defRecordUnsorted;
-map<string, string> extDefinitions;
+//map<string, string> extDefinitions;
 vector<string> litrals;
 vector<string> textRecord;
 HexaConverter hexaConverter;
 bool baseAvailable = false;
 
+//TODO test cases
+/**
+ * check general expression evaluation
+ * Add EQU and ORG and test modRec and Object Code (we don't add modRec or ObjectCode)
+ * check Astrick and different Modification records
+ * test literals
+ * test lecture examples
+ */
 void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;
@@ -32,19 +40,27 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     int itr = 1;
 
     while (cursor.mnemonic != "END") {
-        checkForErrors(cursor);
-        update(cursor,primaryData.literalTable);
-        if(noObjCode(cursor.mnemonic)){
-            textRecord.push_back("");
+        try {
+            checkForErrors(cursor);
+            update(cursor, primaryData.literalTable);
+            if (noObjCode(cursor.mnemonic)) {
+                textRecord.push_back("");
+                cursor = commands[++itr];
+                continue;
+            }
+            if (cursor.operands.size() != 0) {
+                modificationRecordCalculation.addModificationRecord(cursor, itr - 1, definitions, references);
+            }
+            nextInstructionAddress = commands[itr + 1].address;
+            textRecord.push_back(
+                    objectCodeCalculator.getObjectCode(cursor, nextInstructionAddress, commands[itr].address,
+                                                       primaryData.symbolTable, primaryData.literalTable, baseAvailable,
+                                                       references));
             cursor = commands[++itr];
-            continue;
+        }catch (const runtime_error& error) {
+            std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
+            exit(0);
         }
-        if (cursor.operands.size() != 0) {
-            modificationRecordCalculation.addModificationRecord(cursor, itr - 1, definitions, references);
-        }
-        nextInstructionAddress = commands[itr + 1].address;
-        textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,nextInstructionAddress,commands[itr].address,primaryData.symbolTable,primaryData.literalTable,baseAvailable,references));
-        cursor = commands[++itr];
     }
     calculateLitrals(primaryData.literalTable);
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
@@ -73,7 +89,7 @@ void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
     if(cursor.mnemonic == "EXTDEF"){
 
         for(int i = 0; i < cursor.operands.size(); i++) {
-            extDefinitions.insert(std::pair<string, string>(cursor.operands[i], cursor.operands[i])); //TODO shofiha sa7 wala 3'alat / (sarah) malhash lazma?
+//            extDefinitions.insert(std::pair<string, string>(cursor.operands[i], cursor.operands[i]));
             definitions.push_back(cursor.operands[i]);
         }
     }
@@ -94,9 +110,9 @@ void PassTwoManager::update(Command cursor,map<string,  Literal> literalTable){
     if(cursor.mnemonic == "LTORG"){
         calculateLitrals(literalTable);
     }
-    if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
-        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
-    }
+//    if (extDefinitions.find(cursor.label) != extDefinitions.end()) { // D^LISTA^000040
+//        defRecordUnsorted.insert(make_pair(cursor.label, cursor.address));
+//    }
 
 }
 
