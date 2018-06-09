@@ -10,6 +10,8 @@ public:
     void writeToFile(string fileName,vector<PrimaryData> data);
     void generateObjectCodeFile(string fileName , vector<vector<string>> objectCode,
                                 vector<PrimaryData> data,vector<vector<ModificationRecord>> modifications);
+    void generateObjectCodeFileWithSeparators(string fileName , vector<vector<string>> objectCode,
+            vector<PrimaryData> data,vector<vector<ModificationRecord>> modifications);
 };
 
 
