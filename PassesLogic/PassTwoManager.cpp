@@ -32,19 +32,27 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     int itr = 1;
 
     while (cursor.mnemonic != "END") {
-        checkForErrors(cursor);
-        update(cursor,primaryData.literalTable);
-        if(noObjCode(cursor.mnemonic)){
-            textRecord.push_back("");
+        try {
+            checkForErrors(cursor);
+            update(cursor, primaryData.literalTable);
+            if (noObjCode(cursor.mnemonic)) {
+                textRecord.push_back("");
+                cursor = commands[++itr];
+                continue;
+            }
+            if (cursor.operands.size() != 0) {
+                modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+            }
+            nextInstructionAddress = commands[itr + 1].address;
+            textRecord.push_back(
+                    objectCodeCalculator.getObjectCode(cursor, nextInstructionAddress, commands[itr].address,
+                                                       primaryData.symbolTable, primaryData.literalTable, baseAvailable,
+                                                       references));
             cursor = commands[++itr];
-            continue;
+        }catch (const runtime_error& error) {
+            std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
+            exit(0);
         }
-        if (cursor.operands.size() != 0) {
-            modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
-        }
-        nextInstructionAddress = commands[itr + 1].address;
-        textRecord.push_back(objectCodeCalculator.getObjectCode(cursor,nextInstructionAddress,commands[itr].address,primaryData.symbolTable,primaryData.literalTable,baseAvailable,references));
-        cursor = commands[++itr];
     }
     calculateLitrals(primaryData.literalTable);
     DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);

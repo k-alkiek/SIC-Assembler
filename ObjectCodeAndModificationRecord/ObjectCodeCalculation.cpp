@@ -17,6 +17,7 @@ map<string,  Literal> literalTable;
 HexaConverter hexConverter;
 vector<string> extRef;
 Command command;
+int commandIndex;
 bool isPc;
 
 
@@ -119,7 +120,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             } else if(literalTable.find(operands[0]) != literalTable.end()){
                 address = literalTable.at(operands[0]).getAddress();
             } else{
-                __throw_runtime_error("Operand in not defined");
+                __throw_runtime_error("Operand is not defined");
             }
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
             if(symblTable.find(operands[0].substr(1, operands[0].length() - 1)) != symblTable.end()) {
@@ -132,7 +133,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                 displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if(baseAvailable){
                     if(displacement > 4095){
-                        __throw_runtime_error("Displacement out of range");
+                        __throw_runtime_error("Displacement out of range" );
                     }
                     isPC = false;
                 } else {
@@ -149,7 +150,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
 
         } else {
-            __throw_runtime_error("Error");
+            __throw_runtime_error("invalid instruction");
         }
 
         if (!constImmediateOrIndirect) {
@@ -206,7 +207,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             } else if(is_number(operands[0])){
                 address = stoi(operands[0].substr(1, operands[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
-                    __throw_runtime_error("address is bigger than 20 bit");
+                    __throw_runtime_error("address is bigger than 20 bit" );
                 }
             } else{
                 __throw_runtime_error("Invaled operand");
@@ -218,7 +219,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         string value = "0000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
-        __throw_runtime_error("RSUB No Rsub in format 4 ");
+        __throw_runtime_error("RSUB No Rsub in format 4");
     }
 }
 
@@ -308,7 +309,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
 
     if(baseAvailable){
         if(displacement > 4095 || displacement < 0){
-            __throw_runtime_error("Displacement out of range");
+            __throw_runtime_error("Displacement out of range " );
         }
         isPC = false;
     } else {

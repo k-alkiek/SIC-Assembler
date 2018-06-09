@@ -9,6 +9,7 @@ string progName;
 map<string, labelInfo> symTab;
 HexaConverter hexConvertor;
 vector<ModificationRecord> modificationRecord;
+
 ExpressionEvaluator expressionEvaluator(symTab, hexConvertor);
 void ModificationRecordCalculation::setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTab) {
     progName = name;
@@ -104,6 +105,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
 
 void ModificationRecordCalculation::addModificationRecord(Command cursor, int index, vector<string> definitions,
                                            vector<string> references) {
+
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
         //dosent have ext ref
@@ -190,10 +192,10 @@ void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string>
 
     if(isExpression(cursor.operands[0]) && expressionEvaluator.evaluateExpression(cursor.operands[0],cursor.address).type == 0
        && cursor.mnemonic[0] != '+'){
-        __throw_runtime_error("can't have absolute expression with format other than 4");
+        __throw_runtime_error("can't have absolute expression with format other than 4 ");
     }
     if(containsExternalReference(cursor.operands[0], references) && cursor.mnemonic[0] != '+' && cursor.mnemonic != "EXTREF"){
-        __throw_runtime_error("can't have extRef with format other than 4");
+        __throw_runtime_error("can't have extRef with format other than 4 at line");
     }
 }
 
