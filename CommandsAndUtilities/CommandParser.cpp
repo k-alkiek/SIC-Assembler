@@ -13,7 +13,7 @@ vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
     vector<vector<Command>> commands = {{}};
     wrongCommands = {{}};
     int commentCount = 0;
-
+    int sectCount = 0;
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
@@ -44,19 +44,30 @@ vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
         string cond = validateLineSyntax(line);
 
         if(cond == " ") {
-            if (line.mnemonic == "CSECT") {
+            if(line.mnemonic == "END")
+                for(int j = i; j < lines.size() ; j++)
+                    if(lines[i].find("END") != std::string::npos)
+                    {
+                        ErrorMsg errorMsg;
+                        errorMsg.setAttrib(i - commentCount - sectCount, "Misplaced END");
+                        wrongCommands.back().push_back(errorMsg);
+                    }
+
+            else if (line.mnemonic == "CSECT") {
                 Command end_command;
                 end_command.mnemonic = "END";
                 commands.back().push_back(end_command);
                 commands.push_back({});
                 wrongCommands.push_back({});
+                sectCount = i;
+                commentCount = 0;
             }
             commands.back().push_back(line);
         }
         else
         {
             ErrorMsg errorMsg;
-            errorMsg.setAttrib(i - commentCount, cond);
+            errorMsg.setAttrib(i - commentCount - sectCount, cond);
             wrongCommands.back().push_back(errorMsg);
             commands.back().push_back(line);
         }
