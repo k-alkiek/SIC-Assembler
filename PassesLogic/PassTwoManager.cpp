@@ -46,7 +46,7 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             if (noObjCode(cursor.mnemonic)) {
                 if(cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG"){
                     if(cursor.operands[0] == "*"){
-                        modificationRecordCalculation.addModificationRecord(cursor, itr - 1, definitions, references);
+                        modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
                     }
                 }
                 textRecord.push_back("");

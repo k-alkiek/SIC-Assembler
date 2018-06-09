@@ -114,7 +114,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             astrickModificationRecord(index,cursor);
         }
         //dosent have ext ref
-        if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
+        else if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
             || ((isExpression(cursor.operands[0]))
                 && !containsExternalReference(cursor.operands[0], references))) {
             ModificationRecord modRecord;
