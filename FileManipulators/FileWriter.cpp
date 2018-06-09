@@ -9,7 +9,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
     vector<PrimaryData>::iterator dataIterator;
     for (dataIterator = data.begin(); dataIterator !=  data.end() ; ++dataIterator) {
 
-
+        count = 0;
         file << "program name: " << (*dataIterator).programName << "\nProgram size: " << (*dataIterator).programLength
              << "\n\n";
         file << "line    address     label     mnemonics     operands\n";
