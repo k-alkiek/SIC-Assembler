@@ -157,6 +157,8 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             }
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
+    } else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+        astrickModificationRecord(index,cursor);
     }
 }
 

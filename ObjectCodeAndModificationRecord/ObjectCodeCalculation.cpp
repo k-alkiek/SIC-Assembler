@@ -115,11 +115,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
             if(operands[0] == "*"){
-                __throw_runtime_error("Can't have * as an operand with format 3");
-            } else if(operands[0] == "=*"){
-                __throw_runtime_error("Can't have =* as an operand with format 3");
+                address = currentInstructionAddress;
             }
-
             if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;

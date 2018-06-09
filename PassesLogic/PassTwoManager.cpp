@@ -40,7 +40,7 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     int itr = 1;
 
     while (cursor.mnemonic != "END") {
-       // try {
+        try {
             checkForErrors(cursor);
             update(cursor, primaryData.literalTable);
             if (noObjCode(cursor.mnemonic)) {
@@ -57,10 +57,10 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                                                        primaryData.symbolTable, primaryData.literalTable, baseAvailable,
                                                        references));
             cursor = commands[++itr];
-        //}catch (const runtime_error& error) {
-          //  std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
-            //exit(0);
-        //}
+        }catch (const runtime_error& error) {
+            std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
+            exit(0);
+        }
     }
     calculateLitrals(primaryData.literalTable);
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
