@@ -77,7 +77,7 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair<string, OperationInfo>("LTORG", OperationInfo("", true,0,1)));
     opTable.insert(pair<string, OperationInfo>("EXTDEF", OperationInfo("", true,2,3)));
     opTable.insert(pair<string, OperationInfo>("EXTREF", OperationInfo("", true,2,3)));
-
+    opTable.insert(pair<string, OperationInfo>("CSECT",OperationInfo("",true,0,1)));
 }
 
 bool CommandIdentifier::isInTable(string command) {

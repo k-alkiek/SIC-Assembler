@@ -7,13 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-vector<Command> CommandParser::parseFile(vector<string> lines){
+vector<vector<Command>> CommandParser::parseFile(vector<string> lines){
 
     CommandIdentifier commandIdentifier;
-    vector<Command> commands = {};
-    wrongCommands = {};
+    vector<vector<Command>> commands = {{}};
+    wrongCommands = {{}};
     int commentCount = 0;
-
+    int sectCount = 0;
     for(int i = 0 ; i < lines.size(); i++)
     {
         char c = validateLineRegex(lines[i]);
@@ -31,8 +31,8 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
             Command line = extractData(lines[i]);
             ErrorMsg errorMsg;
             errorMsg.setAttrib(i - commentCount, "Invalid line");
-            wrongCommands.push_back(errorMsg);
-            commands.push_back(line);
+            wrongCommands.back().push_back(errorMsg);
+            commands.back().push_back(line);
             continue;
         } else if (c == 'c')
         {
@@ -43,14 +43,33 @@ vector<Command> CommandParser::parseFile(vector<string> lines){
         Command line = extractData(lines[i]);
         string cond = validateLineSyntax(line);
 
-        if(cond == " ")
-            commands.push_back(line);
+        if(cond == " ") {
+            if(line.mnemonic == "END")
+                for(int j = i; j < lines.size() ; j++)
+                    if(lines[i].find("END") != std::string::npos)
+                    {
+                        ErrorMsg errorMsg;
+                        errorMsg.setAttrib(i - commentCount - sectCount, "Misplaced END");
+                        wrongCommands.back().push_back(errorMsg);
+                    }
+
+            else if (line.mnemonic == "CSECT") {
+                Command end_command;
+                end_command.mnemonic = "END";
+                commands.back().push_back(end_command);
+                commands.push_back({});
+                wrongCommands.push_back({});
+                sectCount = i;
+                commentCount = 0;
+            }
+            commands.back().push_back(line);
+        }
         else
         {
             ErrorMsg errorMsg;
-            errorMsg.setAttrib(i - commentCount, cond);
-            wrongCommands.push_back(errorMsg);
-            commands.push_back(line);
+            errorMsg.setAttrib(i - commentCount - sectCount, cond);
+            wrongCommands.back().push_back(errorMsg);
+            commands.back().push_back(line);
         }
 
     }
@@ -105,6 +124,11 @@ string CommandParser::validateLineSyntax(Command line){
                 return "Invalid format 4";
 
         }
+        if(mnemonic == "EXTDEF" || mnemonic == "EXTREF")
+            return " ";
+        else if(mnemonic == "START")
+            return validateStart(line);
+
         if(line.operands.size() != commandIdentifier.getInfo(mnemonic).numberOfOperands){
             return "Wrong operands number";
         }
@@ -112,8 +136,6 @@ string CommandParser::validateLineSyntax(Command line){
             return validateRes(line);
         else if(mnemonic == "BYTE")
             return validateByte(line);
-        else if(mnemonic == "START")
-            return validateStart(line);
 
     }
 
@@ -237,6 +259,9 @@ string CommandParser::validateWord(Command command) {
     for(int i = 0 ; i < command.operands.size() ; i++)
     {
         string operand = command.operands[i];
+        bool label_flag = false;
+        if(isalpha(operand.at(0)))
+            label_flag = true;
         if(operand.length() >  4)
         {
             if(operand.at(0) != '-')
@@ -244,6 +269,9 @@ string CommandParser::validateWord(Command command) {
             if(operand.length() > 5)
                 return "Not compatible length";
         }
+
+        if(label_flag)
+            continue;
 
         int j = 0;
         if(operand.at(0) == '-')
@@ -304,21 +332,21 @@ string CommandParser::validateByte(Command command) {
     return " ";
 }
 
-vector<ErrorMsg> CommandParser::getWrongCommands() {
+vector<vector<ErrorMsg>> CommandParser::getWrongCommands() {
     return wrongCommands;
 }
 
 string CommandParser::validateStart(Command command) {
 
     string operand;
-    try{
-        operand = command.operands[0];
-    } catch (runtime_error)
+
+    if(command.operands.empty())
     {
-        command.operands={};
         command.operands.push_back("0000");
         return " ";
     }
+    operand = command.operands[0];
+
 
     vector<char> hexTab = {'A', 'B', 'C', 'D', 'E', 'F'};
     for(int i = 0 ; i < operand.length() ; i++)
