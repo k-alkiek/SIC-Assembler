@@ -19,7 +19,7 @@ void Logger::errorMsg (string msg) {
 
 void Logger::writeToFile(string msg, string type) {
 
-    ofstream outfile ("test.txt", ios::out | ios::app);
+    ofstream outfile ("logout.txt", ios::out | ios::app);
 
     outfile << "Logger "+ type + ": " + msg << std::endl;
 
