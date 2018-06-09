@@ -117,7 +117,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             if(operands[0] == "*"){
                 address = currentInstructionAddress;
             }
-            if(symblTable.find(operands[0]) != symblTable.end()) {
+            else if(symblTable.find(operands[0]) != symblTable.end()) {
                 label = symblTable.at(operands[0]);
                 address = label.address;
             } else if(literalTable.find(operands[0]) != literalTable.end()){
