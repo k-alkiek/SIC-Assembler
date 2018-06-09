@@ -45,7 +45,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
             if ((*it).operands.size() != 0) {
                 for (int i = 0; i < (*it).operands.size() - 1; ++i) {
-                    file << (*it).operands.at(0) << ",";
+                    file << (*it).operands.at(i) << ",";
                 }
                 file << (*it).operands.at((*it).operands.size() - 1) << "\n";
             } else {
