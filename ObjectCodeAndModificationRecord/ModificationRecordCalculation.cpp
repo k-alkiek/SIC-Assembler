@@ -190,6 +190,9 @@ int ModificationRecordCalculation::checkAddProgName(string expression,vector<str
     return counter;
 
 }
+void ModificationRecordCalculation::clearModRecVector(){
+    modificationRecord.clear();
+}
 
 void ModificationRecordCalculation::checkForErrors(Command cursor,vector<string> references){
 

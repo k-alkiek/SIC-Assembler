@@ -25,9 +25,11 @@ private:
     int checkAddProgName(string basic_string,vector<string> definitions);
     void checkForErrors(Command cursor,vector<string> references);
 
+
 public:
     void setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTable);
     void addModificationRecord(Command cursor, int itr, vector<string> definitions, vector<string> references);
+    void clearModRecVector();
 //    vector<vector<string>> setDefRecord(map<string, string> defRecordsUnsorted, vector<string> definitions);
     vector<ModificationRecord> getModificationRecords();
 };

@@ -81,6 +81,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     data.litrals.clear();
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
     data.modificationRecords = modificationRecordCalculation.getModificationRecords();
+    modificationRecordCalculation.clearModRecVector();
     return data;
 }
 
