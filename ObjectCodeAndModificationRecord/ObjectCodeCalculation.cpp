@@ -189,6 +189,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
     vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
     labelInfo label;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
+    expressionEvaluator.extref_tab = extRef;
     OperandHolder operandHolder("", 0);
     string address;
     if (operands.size() != 0) {
