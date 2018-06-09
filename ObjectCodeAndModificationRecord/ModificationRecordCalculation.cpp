@@ -56,6 +56,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                                                                          vector<string> extReferences, string addressInput,
                                                                          vector<string> definitions) {
     //TODO Gamal needs to skip extReferences in evaluation and set expression to absolute
+    expressionEvaluator.extref_tab = extReferences;
     string address;
 //    string halfBytes;
     if (!constant) {
