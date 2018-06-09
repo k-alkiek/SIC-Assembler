@@ -289,21 +289,22 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                                         vector<PrimaryData> data,vector<vector<ModificationRecord>> modifications){
     HexaConverter hexaConverter;
     string result = "";
+    string separator = "^";
     for (int i = 0; i < objectCode.size(); ++i) {
-        result += "H-";
+        result += "H" + separator;
         result += data[i].commands[0].label;
         int tmp = data[i].commands[0].label.length();
         while (tmp < 6) {
             result += " ";
             tmp++;
         }
-
+        result +=separator;
         tmp = data[i].startingAddress.length();
         while (tmp < 6) {
             result += "0";
             tmp++;
         }
-        result += data[i].startingAddress +"-";
+        result += data[i].startingAddress +separator;
 
         tmp = data[i].programLength.length();
         while (tmp < 6) {
@@ -312,7 +313,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         }
         result += data[i].programLength + "-\n";
         if(data[i].externalSymbols.size() != 0) {
-            result += "D-";
+            result += "D" + separator;
             int defLength = 0;
             int defLengthLimit = 73 - 7;
             for (std::map<string, ExternalSymbolInfo>::iterator iter = data[i].externalSymbols.begin();
@@ -324,26 +325,26 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                     externalDef += " ";
                     tmp++;
                 }
-                externalDef += "-";
+                externalDef += separator;
                 tmp = iter->second.address.length();
                 while (tmp < 6) {
                     externalDef += "0";
                     tmp++;
                 }
-                externalDef += iter->second.address +"-";
+                externalDef += iter->second.address +separator;
 
                 if (defLength + externalDef.length() <= defLengthLimit) {
                     result += externalDef;
                     defLength += externalDef.length();
                 } else {
-                    result += "\nD-" + externalDef;
+                    result += "\nD"+separator + externalDef;
                     defLength = externalDef.length();
                 }
             }
             result += "\n";
         }
         if(data[i].externalReference.size() != 0) {
-            result += "R-";
+            result += "R" + separator;
             int refLength = 0;
             int refLengthLimit = 73 - 7;
 
@@ -356,12 +357,12 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                     externalRef += " ";
                     tmp++;
                 }
-                externalRef += "-";
+                externalRef += separator;
                 if (refLength + externalRef.length() <= refLengthLimit) {
                     result += externalRef;
                     refLength += externalRef.length();
                 } else {
-                    result += "\nR-" + externalRef;
+                    result += "\nR"+separator + externalRef;
                     refLength = externalRef.length();
                 }
             }
@@ -369,7 +370,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         }
         int length = 0;
         int LIMIT = 60;
-        string textRecord = "T-";
+        string textRecord = "T"+separator;
         textRecord += data[i].startingAddress;
         string tmpRecord = "";
         int currentAddress = hexaConverter.hexToDecimal(data[i].startingAddress);
@@ -378,10 +379,10 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
             while (it != objectCode[i].end() && ((length + (*it).size()) < LIMIT)) {
                 length += (*it).length();
                 if((*it).length() != 0)
-                    tmpRecord += (*it) +"-";
+                    tmpRecord += (*it) +separator;
                 ++it;
             }
-            textRecord = "T-";
+            textRecord = "T" +separator;
 
             string add = hexaConverter.decimalToHex(currentAddress);
             tmp = add.length();
@@ -389,11 +390,11 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 textRecord += "0";
                 tmp++;
             }
-            textRecord += add+"-";
+            textRecord += add+separator;
             currentAddress = currentAddress + length / 2;
             if (hexaConverter.decimalToHex(length / 2).size() == 1)
                 textRecord += "0";
-            textRecord += hexaConverter.decimalToHex(length / 2) +"-"+ tmpRecord;
+            textRecord += hexaConverter.decimalToHex(length / 2) +separator+ tmpRecord;
             tmpRecord = "";
             result += textRecord + "\n";
 
@@ -402,14 +403,14 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         //TODO use half Bytes in Modification record (abdelrahman)
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
              it != modifications[i].end(); ++it) {
-            result += "M-";
-            string length = "-05-";
+            result += "M" +separator;
+            string length = separator+"05" +separator;
             ModificationRecord *record = &(*it);
             (*it).address = data[i].commands.at((*it).index).address;
             if (objectCode[i].at((*it).index).length() == 8) {
                 (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
             } else {
-                length = "-06-";
+                length = separator+"06"+separator;
                 (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address));
             }
             tmp = (*it).address.length();
@@ -426,7 +427,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
 
         }
 
-        result += "E-";
+        result += "E" + separator;
         tmp = data[i].commands[data[i].commands.size() - 1].operands.size();
         if (tmp != 0) {
             tmp = data[i].commands[data[i].commands.size() - 1].operands.at(0).length();
@@ -437,7 +438,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
 
             result += data[i].commands[data[i].commands.size() - 1].operands.at(0);
         }
-        result +="-\n\n";
+        result +=separator +"\n\n";
 
     }
     ofstream file;
