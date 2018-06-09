@@ -21,7 +21,7 @@ void Logger::writeToFile(string msg, string type) {
 
     ofstream outfile ("test.txt", ios::out | ios::app);
 
-    outfile << "Logger "+ type + ": "msg << std::endl;
+    outfile << "Logger "+ type + ": " + msg << std::endl;
 
     outfile.close();
 
