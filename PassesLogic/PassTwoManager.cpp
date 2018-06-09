@@ -44,6 +44,11 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             checkForErrors(cursor);
             update(cursor, primaryData.literalTable);
             if (noObjCode(cursor.mnemonic)) {
+                if(cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG"){
+                    if(cursor.operands[0] == "*"){
+                        modificationRecordCalculation.addModificationRecord(cursor, itr - 1, definitions, references);
+                    }
+                }
                 textRecord.push_back("");
                 cursor = commands[++itr];
                 continue;
@@ -131,7 +136,7 @@ string PassTwoManager::convertCToObjCode(string str) {
     return asciiString;
 }
 bool PassTwoManager::noObjCode(string mnemonic){
-    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF"){
+    if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" || mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG"){
         return true;
     }
     return false;
