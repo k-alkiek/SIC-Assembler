@@ -12,9 +12,9 @@ class CommandParser {
 
 public:
 
-    vector<ErrorMsg> wrongCommands;
-    vector<Command> parseFile(vector<string> lines);
-    vector<ErrorMsg> getWrongCommands();
+    vector<vector<ErrorMsg>> wrongCommands;
+    vector<vector<Command>> parseFile(vector<string> lines);
+    vector<vector<ErrorMsg>> getWrongCommands();
 
 private:
     char validateLineRegex(string line);
