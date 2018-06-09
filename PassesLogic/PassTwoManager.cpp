@@ -49,7 +49,7 @@ void PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                 continue;
             }
             if (cursor.operands.size() != 0) {
-                modificationRecordCalculation.addModificationRecord(cursor, itr, definitions, references);
+                modificationRecordCalculation.addModificationRecord(cursor, itr + 1, definitions, references);
             }
             nextInstructionAddress = commands[itr + 1].address;
             textRecord.push_back(
