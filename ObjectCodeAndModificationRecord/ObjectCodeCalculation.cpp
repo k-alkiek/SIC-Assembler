@@ -28,6 +28,7 @@ bool isPc;
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,map<string,  Literal> litTable, bool isPcFlag,vector<string> externalReference) {
     symblTable = symTable;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
+    expressionEvaluator.extref_tab = externalReference;
     OperandHolder operandHolder("", 0);
     nextInstructAddress = nextInstAdd;
     literalTable = litTable;
@@ -188,6 +189,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
     vector<int> nixbpe = getFlagsCombination(operands, 4, false);// give me ni separated from xbpe
     labelInfo label;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
+    expressionEvaluator.extref_tab = extRef;
     OperandHolder operandHolder("", 0);
     string address;
     if (operands.size() != 0) {
