@@ -89,7 +89,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         if(command.mnemonic.compare("END") == 0){
             if(command.operands.size() != 0){
                 if(symbolTable.find(command.operands.at(0)) == symbolTable.end()){
-                    command.operands.clear();
+                    finalCommands.at(finalCommands.size() - 1).operands.clear();
                 }
             }
 
