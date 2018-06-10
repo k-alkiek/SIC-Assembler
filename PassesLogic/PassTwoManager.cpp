@@ -134,7 +134,7 @@ vector<string> PassTwoManager::updateDataVectors(Command cursor,vector<string> d
 
 bool PassTwoManager::noObjCode(string mnemonic){
     if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" ||
-       mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET" || mnemonic == "START"){
+       mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSECT" || mnemonic == "START"){
         return true;
     }
     return false;
