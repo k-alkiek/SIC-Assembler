@@ -243,22 +243,23 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
                 ++comIt;
                 ++it;
             }
-            textRecord = "T";
+            if(tmpRecord.length() !=0) {
+                textRecord = "T";
 
-            string add = hexaConverter.decimalToHex(currentAddress);
-            tmp = add.length();
-            while (tmp < 6) {
-                textRecord += "0";
-                tmp++;
+                string add = hexaConverter.decimalToHex(currentAddress);
+                tmp = add.length();
+                while (tmp < 6) {
+                    textRecord += "0";
+                    tmp++;
+                }
+                textRecord += add;
+                currentAddress = currentAddress + length / 2;
+                if (hexaConverter.decimalToHex(length / 2).size() == 1)
+                    textRecord += "0";
+                textRecord += hexaConverter.decimalToHex(length / 2) + tmpRecord;
+                tmpRecord = "";
+                result += textRecord + "\n";
             }
-            textRecord += add;
-            currentAddress = currentAddress + length / 2;
-            if (hexaConverter.decimalToHex(length / 2).size() == 1)
-                textRecord += "0";
-            textRecord += hexaConverter.decimalToHex(length / 2) + tmpRecord;
-            tmpRecord = "";
-            result += textRecord + "\n";
-
             length = 0;
         }
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
@@ -416,26 +417,27 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 ++comIt;
                 ++it;
             }
-            textRecord = "T" +separator;
+            if(tmpRecord.length() != 0) {
+                textRecord = "T" + separator;
 
-            string add = hexaConverter.decimalToHex(currentAddress);
-            tmp = add.length();
-            while (tmp < 6) {
-                textRecord += "0";
-                tmp++;
+                string add = hexaConverter.decimalToHex(currentAddress);
+                tmp = add.length();
+                while (tmp < 6) {
+                    textRecord += "0";
+                    tmp++;
+                }
+                textRecord += add + separator;
+                if (!broke) {
+                    currentAddress = currentAddress + length / 2;
+                } else {
+                    currentAddress = hexaConverter.hexToDecimal((*comIt).address);
+                }
+                if (hexaConverter.decimalToHex(length / 2).size() == 1)
+                    textRecord += "0";
+                textRecord += hexaConverter.decimalToHex(length / 2) + separator + tmpRecord;
+                tmpRecord = "";
+                result += textRecord + "\n";
             }
-            textRecord += add+separator;
-            if(!broke){
-                currentAddress = currentAddress + length / 2;
-            } else {
-                currentAddress = hexaConverter.hexToDecimal((*comIt).address);
-            }
-            if (hexaConverter.decimalToHex(length / 2).size() == 1)
-                textRecord += "0";
-            textRecord += hexaConverter.decimalToHex(length / 2) +separator+ tmpRecord;
-            tmpRecord = "";
-            result += textRecord + "\n";
-
             length = 0;
         }
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
