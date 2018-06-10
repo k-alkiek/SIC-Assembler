@@ -220,10 +220,27 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
         string tmpRecord = "";
         int currentAddress = hexaConverter.hexToDecimal(data[i].startingAddress);
         vector<string>::iterator it = objectCode[i].begin();
+        vector<Command>::iterator comIt = data[i].commands.begin();
+        bool broke = false;
         while (it != objectCode[i].end()) {
             while (it != objectCode[i].end() && ((length + (*it).size()) < LIMIT)) {
                 length += (*it).length();
-                tmpRecord += (*it);
+                if((*it).length() != 0) {
+                    tmpRecord += (*it);
+                }
+                if((*comIt).mnemonic == "RESW" || (*comIt).mnemonic == "RESB") {
+                    if(tmpRecord.length() != 0) {
+                        ++comIt;
+                        ++it;
+                        broke = true;
+                        break;
+                    } else {
+                        comIt++;
+                        currentAddress = hexaConverter.hexToDecimal(((*comIt).address));
+                        comIt--;
+                    }
+                }
+                ++comIt;
                 ++it;
             }
             textRecord = "T";
