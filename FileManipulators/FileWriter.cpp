@@ -244,21 +244,14 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
              it != modifications[i].end(); ++it) {
             result += "M";
-            string length = "05";
             ModificationRecord *record = &(*it);
-            (*it).address = data[i].commands.at((*it).index).address;
-            if (objectCode[i].at((*it).index).length() == 8) {
-                (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
-            } else {
-                length = "06";
-                (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address));
-            }
             tmp = (*it).address.length();
             while (tmp < 6) {
                 result += "0";
                 tmp++;
             }
-            result += (*it).address + length;
+            result += (*it).address ;
+            result +=  (*it).halfBytes;
             if ((*it).labelToBeAdded != "") {
                 result += (*it).operation + (*it).labelToBeAdded + "\n";
             } else {
@@ -270,13 +263,15 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
         result += "E";
         tmp = data[i].commands[data[i].commands.size() - 1].operands.size();
         if (tmp != 0) {
-            tmp = data[i].commands[data[i].commands.size() - 1].operands.at(0).length();
+            string name = data[i].commands[data[i].commands.size() - 1].operands.at(0);
+            string address = data[i].symbolTable.find(name)->second.address;
+            tmp = address.length();
             while (tmp < 6) {
                 result += "0";
                 tmp++;
             }
 
-            result += data[i].commands[data[i].commands.size() - 1].operands.at(0);
+            result += data[i].symbolTable.find(data[i].commands[data[i].commands.size() - 1].operands.at(0))->second.address;
         }
         result +="\n\n";
 
@@ -406,22 +401,14 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
              it != modifications[i].end(); ++it) {
             result += "M" +separator;
-//            string length = separator+"05" +separator;
             ModificationRecord *record = &(*it);
-            (*it).address = data[i].commands.at((*it).index).address;
-            if (objectCode[i].at((*it).index).length() == 8) {
-                (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
-            } else {
-//                length = separator+"06"+separator;
-                (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address));
-            }
             tmp = (*it).address.length();
             while (tmp < 6) {
                 result += "0";
                 tmp++;
             }
-//            result += (*it).address + length;
-            result += (*it).address + (*it).halfBytes; //TODO (abdelrahman) check if this is correct
+            result += (*it).address +separator;
+            result +=  (*it).halfBytes + separator;
             if ((*it).labelToBeAdded != "") {
                 result += (*it).operation + (*it).labelToBeAdded + "\n";
             } else {
@@ -433,13 +420,15 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         result += "E" + separator;
         tmp = data[i].commands[data[i].commands.size() - 1].operands.size();
         if (tmp != 0) {
-            tmp = data[i].commands[data[i].commands.size() - 1].operands.at(0).length();
+            string name = data[i].commands[data[i].commands.size() - 1].operands.at(0);
+            string address = data[i].symbolTable.find(name)->second.address;
+            tmp = address.length();
             while (tmp < 6) {
                 result += "0";
                 tmp++;
             }
 
-            result += data[i].commands[data[i].commands.size() - 1].operands.at(0);
+            result += data[i].symbolTable.find(data[i].commands[data[i].commands.size() - 1].operands.at(0))->second.address;
         }
         result +=separator +"\n\n";
 
