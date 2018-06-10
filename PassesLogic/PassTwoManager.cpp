@@ -152,6 +152,8 @@ int PassTwoManager::getBaseValue(Command cursur, map<string, labelInfo> symbolTa
             loggerPassTwo.errorMsg("PassTwoManager: invalid value in base register ");
             __throw_runtime_error("invalid value in base register ");
         }
+    } else if(cursur.operands[0][0] == '='){
+        return stoi(cursur.operands[0].substr(3,cursur.operands[0].size()-2));
     } else{
         loggerPassTwo.errorMsg("PassTwoManager: invalid value in base register ");
         __throw_runtime_error("invalid value in base register ");
