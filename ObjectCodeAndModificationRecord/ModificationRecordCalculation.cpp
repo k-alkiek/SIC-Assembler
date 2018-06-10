@@ -129,7 +129,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             //have ext ref
             evaluateModificationRecordExpression(false,index, cursor.operands[0], references, cursor.address, definitions);
         }
-    } else if (cursor.mnemonic == "WORD") {
+    } else if (cursor.mnemonic == "WORD") { //TODO (Byte) leeh mesh mezawedeen byte?!
         /**
          * 1) check if it contains an expression
          * 2) check if it's a valid label
@@ -143,12 +143,12 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
                  && (cursor.operands[i] == "=*"|| cursor.operands[i] == "*"))
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
-                    && (symTab.at(cursor.label)).type != "relative")) {
+                    && (symTab.at(cursor.label)).type != "relative")) { //TODO (labib) dih el mafroud Relative bei R capital?
                 ModificationRecord modRecord;
                 modRecord.index = index;
                 modRecord.labelToBeAdded = progName;
                 modRecord.operation = "+";
-                modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 1));
+                modRecord.address = address;
                 modRecord.halfBytes = "06";
                 modificationRecord.push_back(modRecord);
             } else if (isExpression(cursor.operands[i]) && containsExternalReference(cursor.operands[0], references)) {
