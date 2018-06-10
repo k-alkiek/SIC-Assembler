@@ -429,8 +429,10 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 textRecord += add + separator;
                 if (!broke) {
                     currentAddress = currentAddress + length / 2;
-                } else {
+                } else if(comIt != data[i].commands.end()){
                     currentAddress = hexaConverter.hexToDecimal((*comIt).address);
+                } else {
+                    currentAddress = 0;
                 }
                 if (hexaConverter.decimalToHex(length / 2).size() == 1)
                     textRecord += "0";
