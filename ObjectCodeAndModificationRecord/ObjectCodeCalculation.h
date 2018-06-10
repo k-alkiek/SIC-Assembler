@@ -27,7 +27,7 @@ private:
 
     string completeObjCodeFormat4(int uncompletedObjCode, vector <string> operands);
 
-    vector<int> getFlagsCombination(vector <string> operands, int format, bool PCRelative);
+    vector<int> getFlagsCombination(vector <string> operands, int format, bool PCRelative, bool isIndexing);
 
     vector<int> getSimpleDisplacement(string TA, string progCounter,bool baseAvailable);
 
@@ -37,6 +37,7 @@ private:
     bool is_number(string s);
     vector<ExternalSymbolInfo> getDataFromMap(map<string, ExternalSymbolInfo> externalReference);
     bool containsExternalReference (string expression, vector<string> extReferences);
+    vector<string> splitString(string str);
 public:
     string getObjectCode(Command cursor, string nextInstAdd,string currentInstAdd, map<string, labelInfo> symbolTable, map<string,  Literal> litTable,bool isPcFlag,vector<string> externalReference);
 
