@@ -1,7 +1,10 @@
 #include "FileWriter.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
+#include "../Logger/Logger.h"
 
 void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
+    Logger logWriterIntermediate;
+
     ofstream file;
     int count = 0;
     int lines = 0;
@@ -72,6 +75,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
         }
         if ((*dataIterator).errorMsgsMap.size() != 0) {
+            logWriterIntermediate.infoMsg("FileWriter: Unsuccessful Compilation");
             file << "\n\n        UNSUCCESSFUL COMPILATION !\n";
 
         } else {
@@ -117,7 +121,7 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
                 file << literal.getAddress();
                 file << "\n";
             }
-
+            logWriterIntermediate.infoMsg("FileWriter: Successful Compilation");
             file << "\n\n        SUCCESSFUL COMPILATION !\n\n";
         }
     }

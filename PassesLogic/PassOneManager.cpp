@@ -4,7 +4,9 @@
 #include "../DTOs/SymbolPosition.h"
 #include "../DTOs/ExternalSymbolInfo.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
+#include "../Logger/Logger.h"
 #include <stdio.h>
+Logger loggerPassOne;
 PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wrongCommands) {
     string startingAddress;
     string nameOfProgram;
@@ -133,7 +135,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         }
         if(command.label.compare("") != 0){
             if(command.label.compare(nameOfProgram) == 0) {
-                //TODO error
+                //TODO error /use loggerPassOne.errorMsg("PassOneManager: ErrorMsg");
                 ErrorMsg msg;
                 msg.index = count;
                 msg.msg = "The label " + command.label + " has the same name as the program";
@@ -143,7 +145,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
 
             }
             if (command.mnemonic.compare("EXTREF") == 0||command.mnemonic.compare("EXTDEF") == 0) {
-                //TODO error
+                //TODO error /use loggerPassOne.errorMsg("PassOneManager: ErrorMsg");
                 ErrorMsg msg;
                 msg.index = count;
                 msg.msg = "The label is not allowed by this mnemonic ";
@@ -197,7 +199,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             }
             else {
                 if(PassOneManager::symbolTable.find(command.label) != symbolTable.end()){
-                    //TODO error
+                    //TODO error /use loggerPassOne.errorMsg("PassOneManager: ErrorMsg");
                     ErrorMsg msg;
                     msg.index = count;
                     msg.msg = "The label " + command.label + " is already defined";
@@ -356,7 +358,10 @@ labelInfo PassOneManager::getOperandValue(string operand) {
             info.address = tmpValue;
             info.type = symbolTable.find(operand)->second.type;
         }
-        else throw invalid_argument("Invalid value");
+        else {
+            loggerPassOne.errorMsg("PassOneManager: Invalid value");
+            throw invalid_argument("Invalid value");
+        }
     }
     return info;
 }

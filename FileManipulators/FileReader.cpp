@@ -1,8 +1,12 @@
 #include "FileReader.h"
+#include "../Logger/Logger.h"
 
 vector<string> FileReader::readFile(string fileName){
+    Logger logReader;
+
     ifstream infile(fileName);
     if(!infile) {
+        logReader.errorMsg("FileReader: Cannot open input file");
         cout << "Cannot open input file.\n";
     }
     std::string line;

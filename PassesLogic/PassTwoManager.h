@@ -17,7 +17,7 @@ class PassTwoManager {
 private:
     CommandIdentifier commandIdentifier;
     void checkForErrors(Command cursor,PassTwoData data);
-    string convertCToObjCode(string str,PassTwoData data);
+//    string convertCToObjCode(string str,PassTwoData data);
     bool noObjCode(string mnemonic);
     vector<string> updateDataVectors(Command cursor,vector<string> data);
 public:

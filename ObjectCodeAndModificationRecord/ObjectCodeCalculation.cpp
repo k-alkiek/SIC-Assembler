@@ -7,6 +7,7 @@
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../DTOs/ExternalSymbolInfo.h"
 #include "../DTOs/Literal.h"
+#include "../Logger/Logger.h"
 #include <cmath>
 #include <string>
 using namespace std;
@@ -22,7 +23,7 @@ vector<string> extRef;
 Command command;
 int commandIndex;
 bool isPc;
-
+Logger loggerObjectCode;
 
 
 string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, string currentInstAdd, map<string, labelInfo> symTable,map<string,  Literal> litTable, bool isPcFlag,vector<string> externalReference) {
@@ -57,6 +58,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
     } else if (cursor.mnemonic == "BYTE") {
         string operand;
         if (cursor.operands.size() != 1) {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operands");
             __throw_runtime_error("Invalid operands");
         } else {
             operand = cursor.operands[0];
@@ -66,6 +68,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
         } else if (operand.front() == 'C' && operand[1] == '\'') {
             return convertCToObjCode(operand.substr(2, operand.length() - 3));
         } else {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid type");
             __throw_runtime_error("Invalid type");
         }
     } else if (opTable.isInTable(cursor.mnemonic)) {
@@ -115,6 +118,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         if (isAnExpression) {
             operandHolder = expressionEvaluator.evaluateExpression(operands[0], currentInstructionAddress);
             if(operandHolder.type == 0){
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: absolute expression in format 3 instruction");
                 __throw_runtime_error("absolute expression in format 3 instruction");
             }
             address = operandHolder.value;
@@ -128,6 +132,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             } else if(literalTable.find(operands[0]) != literalTable.end()){
                 address = literalTable.at(operands[0]).getAddress();
             } else{
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Operand is not defined");
                 __throw_runtime_error("Operand is not defined");
             }
         } else if ((operands[0][0] == '#' || operands[0][0] == '@')) {
@@ -145,6 +150,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                     } else if(displacement >= 2048 && displacement < 4096){
                         isPC = false;
                     } else{
+                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
                         __throw_runtime_error("Displacement out of range");
                     }
 
@@ -152,16 +158,19 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                     if (displacement < 2048 && displacement >= -2048) {
                         isPC = true;
                     } else {
+                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
                         __throw_runtime_error("Displacement out of range");
                     }
                 }
 
                 constImmediateOrIndirect = true;
             } else{
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: operand is not in symbol table or Litteral table");
                 __throw_runtime_error("operand is not in symTable or LitTable");
             }
 
         } else {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid instruction");
             __throw_runtime_error("invalid instruction");
         }
 
@@ -207,11 +216,13 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
                 address = operands[0].substr(1, operands[0].length() - 1);
                 if (stoi(address) > pow(2, 20)) {
+                    loggerObjectCode.errorMsg("ObjectCodeCalculation: address is bigger than 20 bits");
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
             } else if(operands[0][1] == '*'){
                 address = currentInstructionAddress;
             } else{
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
                 __throw_runtime_error("invalid operand");
             }
 
@@ -227,12 +238,14 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             } else if(is_number(operands[0])){
                 address = (operands[0].substr(1, operands[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
+                    loggerObjectCode.errorMsg("ObjectCodeCalculation: address is bigger than 20 bit");
                     __throw_runtime_error("address is bigger than 20 bit" );
                 }
             } else if(operands[0] == "*"){
                 address = currentInstructionAddress;
             } else{
-                __throw_runtime_error("Invaled operand");
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
+                __throw_runtime_error("Invalid operand");
             }
         }
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
@@ -241,6 +254,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         string value = "0000000000000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
+        loggerObjectCode.errorMsg("ObjectCodeCalculation: No Rsub in format 4");
         __throw_runtime_error("RSUB No Rsub in format 4");
     }
 }
@@ -252,17 +266,20 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
         if (operands[1] == "X") {
             xbpe = 8;       //indexing
         } else {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Wrong number of operands");
             __throw_runtime_error("Wrong number of operands");
         }
     }
     if (format == 3) {
         if (operands[0].front() == '#') {
             if (xbpe == 8) {
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Can't have immediate addressing(#) with indexing(X)");
                 __throw_runtime_error("ERROR can't have immediate with X");
             }
             ni = 1;             //01 immediate
         } else if (operands[0].front() == '@') {
             if (xbpe == 8) {
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Can't have indirect addressing(@) with indexing(X)");
                 __throw_runtime_error("ERROR can't have indirect with X");
             }
             ni = 2;  //10 indirect
@@ -278,11 +295,13 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
     } else { //format 4
         if (operands[0].front() == '#') {
             if (xbpe == 8) {
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Can't have immediate addressing(#) with indexing(X)");
                 __throw_runtime_error("ERROR can't have immediate with X");
             }
             ni = 1;             //01 immediate
         } else if (operands[0].front() == '@') {
             if (xbpe == 8) {
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Can't have indirect addressing(@) with indexing(X)");
                 __throw_runtime_error("ERROR can't have indirect with X");
             }
             ni = 2;  //10 indirect
@@ -335,6 +354,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
         } else if(displacement >= 2048 && displacement < 4096){
             isPC = false;
         } else{
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
             __throw_runtime_error("Displacement out of range");
         }
 
@@ -342,6 +362,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
         if (displacement < 2048 && displacement >= -2048) {
             isPC = true;
         } else {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
             __throw_runtime_error("Displacement out of range");
         }
     }

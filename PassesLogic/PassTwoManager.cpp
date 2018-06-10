@@ -3,11 +3,9 @@
 #include "../ObjectCodeAndModificationRecord/ObjectCodeCalculation.h"
 #include "../ObjectCodeAndModificationRecord/ModificationRecordCalculation.h"
 #include "../DTOs/PassTwoData.h"
+#include "../Logger/Logger.h"
 #include <cmath>
 #include <sstream>
-
-
-
 
 //TODO test cases
 /**
@@ -18,6 +16,7 @@
  * test lecture examples
  */
 CommandIdentifier commandIdentifier;
+Logger loggerPassTwo;
 PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
     ObjectCodeCalculation objectCodeCalculator;
@@ -46,7 +45,6 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                     data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
                 }
                 data.litrals.clear();
-
             }
             if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
                 data.litrals.push_back(cursor.operands[0]);
@@ -71,6 +69,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                                                        data.references));
             cursor = commands[++itr];
         }catch (const runtime_error& error) {
+            loggerPassTwo.errorMsg("PassTwoManager: Caught exception at line " + (itr +1));
             std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
             exit(0);
         }
@@ -92,6 +91,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
 void PassTwoManager::checkForErrors(Command cursor,PassTwoData data){
     for (int i = 0; i < cursor.operands.size(); i++){
         if(commandIdentifier.isInTable(cursor.operands[i])){
+            loggerPassTwo.errorMsg("PassTwoManager: Invalid operand ");
             __throw_runtime_error("Invalid operand");
         }
     }
@@ -106,13 +106,14 @@ vector<string> PassTwoManager::updateDataVectors(Command cursor,vector<string> d
 }
 
 
-string PassTwoManager::convertCToObjCode(string str,PassTwoData data) {
-    string asciiString = "";
-    for (int i = 0; i < str.length(); i++) {
-        asciiString += data.hexaConverter.decimalToHex(str[i]);
-    }
-    return asciiString;
-}
+//string PassTwoManager::convertCToObjCode(string str,PassTwoData data) {
+//    string asciiString = "";
+//    for (int i = 0; i < str.length(); i++) {
+//        asciiString += data.hexaConverter.decimalToHex(str[i]);
+//    }
+//    return asciiString;
+//}
+
 bool PassTwoManager::noObjCode(string mnemonic){
     if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" ||
        mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET" || mnemonic == "START"){
