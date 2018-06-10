@@ -402,7 +402,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 if((*it).length() != 0) {
                     tmpRecord += (*it) + separator;
                 }
-                if((*comIt).mnemonic == "RESW" || (*comIt).mnemonic == "RESB") {
+                if(comIt != data[i].commands.end()&&((*comIt).mnemonic == "RESW" || (*comIt).mnemonic == "RESB")) {
                     if(tmpRecord.length() != 0) {
                         ++comIt;
                         ++it;
