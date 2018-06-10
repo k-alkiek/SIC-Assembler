@@ -4,6 +4,7 @@
 #include "PassesLogic/PassOneManager.h"
 #include "PassesLogic/PassTwoManager.h"
 #include "FileManipulators/FileReader.h"
+#include "Logger/Logger.h"
 
 int main() {
 
@@ -12,15 +13,14 @@ int main() {
     PassOneManager manager;
     vector<PrimaryData> data;
 
-    std::ofstream logFile;
-    logFile.open("logout.txt", std::ofstream::out | std::ofstream::trunc);
-    logFile.close();
+    Logger logger;
+    logger.clear();
 
-    vector<string> lines = reader.readFile("/home/mostafa/CLionProjects/SIC-Assembler/test2.txt");
+    vector<string> lines = reader.readFile("/home/saraheldafrawy/CLionProjects/SIC-Assembler/Input.txt");
     if (lines.size() == 0) {
 
         ofstream file;
-        file.open("Output.txt");
+        file.open("/home/saraheldafrawy/CLionProjects/SIC-Assembler/Output.txt");
         file << "the input file is empty";
         return 0;
     }
@@ -52,10 +52,10 @@ int main() {
             objectCode.push_back(textRec);
             modificationRecords.push_back(mod);
         }
-        writer.generateObjectCodeFileWithSeparators("Output.txt", objectCode, data, modificationRecords);
+        writer.generateObjectCodeFileWithSeparators("/home/saraheldafrawy/CLionProjects/SIC-Assembler/Output.txt", objectCode, data, modificationRecords);
     } else {
         ofstream file;
-        file.open("Output.txt");
+        file.open("/home/saraheldafrawy/CLionProjects/SIC-Assembler/Output.txt");
         file << "there are errors";
         return 0;
     }

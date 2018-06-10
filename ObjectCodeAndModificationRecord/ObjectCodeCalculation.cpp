@@ -151,15 +151,15 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
                         isPC = false;
                     } else{
                         loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-                        __throw_runtime_error("Displacement out of range");
+                        __throw_runtime_error("Displacement out of range with base");
                     }
 
                 } else {
                     if (displacement < 2048 && displacement >= -2048) {
                         isPC = true;
                     } else {
-                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-                        __throw_runtime_error("Displacement out of range");
+                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range no base");
+                        __throw_runtime_error("Displacement out of range no base");
                     }
                 }
 
@@ -355,7 +355,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
             isPC = false;
         } else{
             loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-            __throw_runtime_error("Displacement out of range");
+            __throw_runtime_error("Displacement out of range with base");
         }
 
     } else {
@@ -363,7 +363,7 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
             isPC = true;
         } else {
             loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-            __throw_runtime_error("Displacement out of range");
+            __throw_runtime_error("Displacement out of range no base");
         }
     }
     results.push_back(isPC);

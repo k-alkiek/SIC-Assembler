@@ -19,10 +19,16 @@ void Logger::errorMsg (string msg) {
 
 void Logger::writeToFile(string msg, string type) {
 
-    ofstream outfile ("logout.txt", ios::out | ios::app);
+    ofstream outfile ("/home/saraheldafrawy/CLionProjects/SIC-Assembler/logout.txt", ios::out | ios::app);
 
     outfile << "Logger "+ type + ": " + msg << std::endl;
 
     outfile.close();
 
+}
+
+void Logger:: clear() {
+    std::ofstream logFile;
+    logFile.open("/home/saraheldafrawy/CLionProjects/SIC-Assembler/logout.txt", std::ofstream::out | std::ofstream::trunc);
+    logFile.close();
 }

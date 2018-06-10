@@ -12,7 +12,7 @@ class Logger {
 public:
     void errorMsg (string msg);
     void infoMsg (string msg);
-
+    void  clear();
 private:
     void writeToFile(string msg, string type);
 
