@@ -45,7 +45,7 @@ CommandIdentifier::CommandIdentifier(){
     opTable.insert(pair <string, OperationInfo> ("SSK", OperationInfo("EC",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("STA", OperationInfo("0C",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("STB", OperationInfo("78",true,1,3)));
-    opTable.insert(pair <string, OperationInfo> ("STCH", OperationInfo("54",true,2,3)));
+    opTable.insert(pair <string, OperationInfo> ("STCH", OperationInfo("54",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("STF", OperationInfo("80",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("STI", OperationInfo("D4",true,1,3)));
     opTable.insert(pair <string, OperationInfo> ("STL", OperationInfo("14",true,1,3)));
