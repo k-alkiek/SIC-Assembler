@@ -128,6 +128,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
             vector<string> operandSplited;
+            operands[0].erase(std::remove(operands[0].begin(), operands[0].end(), ' '), operands[0].end());
             if(operands[0].find(",X") != string::npos) {
                 operandSplited = splitString(operands[0]);
                 if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
@@ -213,6 +214,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
     bool isIndexing = false;
     vector<string> operandSplited;
+    operands[0].erase(std::remove(operands[0].begin(), operands[0].end(), ' '), operands[0].end());
     if(operands[0].find(",X") != string::npos) {
         operandSplited = splitString(operands[0]);
         if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
@@ -446,7 +448,6 @@ vector<string> ObjectCodeCalculation::splitString(string str) {
     //split operand[0] and check first element in vector bshart el tany X
     //7oty isIndexing else error
     vector<string> returnedVector;
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
     stringstream ss(str);
     string token;
 
