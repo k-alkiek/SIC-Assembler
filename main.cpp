@@ -16,7 +16,7 @@ int main() {
     Logger logger;
     logger.clear();
 
-    vector<string> lines = reader.readFile("/home/mostafa/CLionProjects/SIC-Assembler/test2.txt");
+    vector<string> lines = reader.readFile("/home/mostafa/CLionProjects/SIC-Assembler/testCasesFromLectures/testB.txt");
     if (lines.size() == 0) {
 
         ofstream file;
