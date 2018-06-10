@@ -128,12 +128,16 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
             vector<string> operandSplited;
-            operandSplited = splitString(operands[0]);
-            if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
-                isIndexing = true;
+            if(operands[0].find(",X") != string::npos) {
+                operandSplited = splitString(operands[0]);
+                if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
+                    isIndexing = true;
+                } else if (operandSplited.size() > 2) {
+                    loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
+                    __throw_runtime_error("Operand is not defined");
+                }
             } else {
-                loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
-                __throw_runtime_error("Operand is not defined");
+                operandSplited = operands;
             }
 
             if(operands[0] == "*"){
@@ -207,16 +211,18 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 }
 
 string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
-
-
     bool isIndexing = false;
     vector<string> operandSplited;
-    operandSplited = splitString(operands[0]);
-    if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
-        isIndexing = true;
+    if(operands[0].find(",X") != string::npos) {
+        operandSplited = splitString(operands[0]);
+        if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
+            isIndexing = true;
+        } else if (operandSplited.size() > 2) {
+            loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
+            __throw_runtime_error("Operand is not defined");
+        }
     } else {
-        loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
-        __throw_runtime_error("Operand is not defined");
+        operandSplited = operands;
     }
 
     vector<int> nixbpe = getFlagsCombination(operands, 4, false, isIndexing);// give me ni separated from xbpe
@@ -256,10 +262,10 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             }else if(literalTable.find(operandSplited[0]) != literalTable.end()){
                 address = literalTable.at(operandSplited[0]).getAddress();
             }
-            else if(containsExternalReference(operands[0],extRef)){ //TODO operandSplited[0] check
+            else if(containsExternalReference(operandSplited[0],extRef)){
                 address = "00000";
-            } else if(is_number(operands[0])){ //TODO operandSplited[0] check
-                address = (operands[0].substr(1, operands[0].length() - 1));
+            } else if(is_number(operandSplited[0])){
+                address = (operandSplited[0].substr(1, operandSplited[0].length() - 1));
                 if (stoi(address) > pow(2, 20)) {
                     loggerObjectCode.errorMsg("ObjectCodeCalculation: address is bigger than 20 bit");
                     __throw_runtime_error("address is bigger than 20 bit" );
@@ -366,7 +372,7 @@ int ObjectCodeCalculation::getRegisterNumber(string registerr) {
 vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progCounter,bool baseAvailable) {
     vector<int> results;
     int displacement = 0;
-    int isPC = 1;
+    bool isPC;
     int targetAdd = hexConverter.hexToDecimal(TA);
     int programCount = hexConverter.hexToDecimal(progCounter);
     displacement = targetAdd - programCount;
@@ -440,13 +446,14 @@ vector<string> ObjectCodeCalculation::splitString(string str) {
     //split operand[0] and check first element in vector bshart el tany X
     //7oty isIndexing else error
     vector<string> returnedVector;
-    replace(str.begin(), str.end(), ' ', '');
+    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
     stringstream ss(str);
     string token;
 
     while (getline(ss, token, ',')){
         returnedVector.push_back(token);
     }
+    return returnedVector;
 }
 
 
