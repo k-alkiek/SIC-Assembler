@@ -399,17 +399,16 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
 
             length = 0;
         }
-        //TODO use half Bytes in Modification record (abdelrahman)
         for (vector<ModificationRecord>::iterator it = modifications[i].begin();
              it != modifications[i].end(); ++it) {
             result += "M" +separator;
-            string length = separator+"05" +separator;
+//            string length = separator+"05" +separator;
             ModificationRecord *record = &(*it);
             (*it).address = data[i].commands.at((*it).index).address;
             if (objectCode[i].at((*it).index).length() == 8) {
                 (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address) + 1);
             } else {
-                length = separator+"06"+separator;
+//                length = separator+"06"+separator;
                 (*it).address = hexaConverter.decimalToHex(hexaConverter.hexToDecimal((*it).address));
             }
             tmp = (*it).address.length();
@@ -417,7 +416,8 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 result += "0";
                 tmp++;
             }
-            result += (*it).address + length;
+//            result += (*it).address + length;
+            result += (*it).address + (*it).halfBytes; //TODO (abdelrahman) check if this is correct
             if ((*it).labelToBeAdded != "") {
                 result += (*it).operation + (*it).labelToBeAdded + "\n";
             } else {

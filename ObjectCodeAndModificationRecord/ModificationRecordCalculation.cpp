@@ -57,13 +57,13 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
                                                                          vector<string> definitions) {
     expressionEvaluator.extref_tab = extReferences;
     string address;
-//    string halfBytes;
+    string halfBytes;
     if (!constant) {
         address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(addressInput) + 1));
-//        halfBytes = "05";
+        halfBytes = "05";
     } else {
         address = addressInput;
-//        halfBytes = "06";
+        halfBytes = "06";
     }
 
     for (int i = 0; i < extReferences.size(); i++) {
@@ -74,7 +74,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
             modRecord.index = itr;
             modRecord.labelToBeAdded = extReferences[i];
             modRecord.address = address;
-//            modRecord.halfBytes = halfBytes;
+            modRecord.halfBytes = halfBytes;
             if (position == 0 || exp.at(position - 1) == '+') {
                 modRecord.operation = "+";
             } else if (exp.at(position - 1) == '-') {
@@ -98,7 +98,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
             counter ++;
         }
         modRecord.address = address;
-//        modRecord.halfBytes = halfBytes;
+        modRecord.halfBytes = halfBytes;
         modificationRecord.push_back(modRecord);
     }
 }
@@ -110,7 +110,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
     if (cursor.mnemonic[0] == '+') {
         //add * case here in format 4
         if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
-            astrickModificationRecord(index,cursor);
+            astrickModificationRecord(index,cursor,"05");
         }
         //dosent have ext ref
         else if ((!(isExpression(cursor.operands[0])) && !containsExternalReference(cursor.operands[0], references))
@@ -121,7 +121,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             modRecord.labelToBeAdded = progName;
             modRecord.operation = "+";
             modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-//            modRecord.halfBytes = "05";
+            modRecord.halfBytes = "05";
             modificationRecord.push_back(modRecord);
         } else {
             //have ext ref
@@ -147,7 +147,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
                 modRecord.labelToBeAdded = progName;
                 modRecord.operation = "+";
                 modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 1));
-//                modRecord.halfBytes = "06";
+                modRecord.halfBytes = "06";
                 modificationRecord.push_back(modRecord);
             } else if (isExpression(cursor.operands[i]) && containsExternalReference(cursor.operands[0], references)) {
                 // it has absolute expression that contains ext ref
@@ -157,17 +157,18 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
     } else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
-        astrickModificationRecord(index,cursor);
+
+        astrickModificationRecord(index,cursor,"03"); //TODO (labib) check if half bytes = "03" is correct
     }
 }
 
-void ModificationRecordCalculation::astrickModificationRecord(int index, Command cursor) {
+void ModificationRecordCalculation::astrickModificationRecord(int index, Command cursor, string halfBytes) {
     ModificationRecord modRecord;
     modRecord.index = index;
     modRecord.labelToBeAdded = progName;
     modRecord.operation = "+";
     modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
-//        modRecord.halfBytes = "003"; //mafeesh modification record l format 3
+    modRecord.halfBytes = halfBytes;
     modificationRecord.push_back(modRecord);
 }
 
