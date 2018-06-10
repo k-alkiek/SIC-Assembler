@@ -69,7 +69,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                                                        data.references));
             cursor = commands[++itr];
         }catch (const runtime_error& error) {
-            loggerPassTwo.errorMsg("PassTwoManager: Caught exception at line " + (itr +1));
+            loggerPassTwo.errorMsg("PassTwoManager: Caught exception at line " + to_string(itr+1));
             std::cout << "Caught exception \"" << error.what() << " at line " << itr +1 << "\"\n";
             exit(0);
         }
