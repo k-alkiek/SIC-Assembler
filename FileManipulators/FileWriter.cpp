@@ -100,12 +100,15 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
 
             file << "\n Literals\n";
-            file << "\n\nname            value          address\n";
+            file << "\nname            value          address\n";
             for (map<string, Literal>::const_iterator it = (*dataIterator).literalTable.begin();
                  it != (*dataIterator).literalTable.end(); ++it) {
-
-                file << it->first;
-                tmp = it->first.size();
+                string name = it->first;
+                if (name[0] != '=') {
+                    name = "=* @" + name;
+                }
+                file << name;
+                tmp = name.size();
                 while (tmp < 16) {
                     file << " ";
                     tmp++;

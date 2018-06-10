@@ -5,18 +5,19 @@
 #include "Literal.h"
 #include "../ConvertersAndEvaluators/HexaConverter.h"
 
-Literal::Literal(string name, string currentLocation) {
+Literal::Literal(string name, int currentLocation, int instructionSize) {
     this->name = name;
-    process(currentLocation);
+    process(currentLocation, instructionSize);
 }
 
-void Literal::process(string currentLocation) {
-    char type = name[1];
-    address = currentLocation;
+void Literal::process(int currentLocation, int instructionSize) {
     HexaConverter hexaConverter = HexaConverter();
+    char type = name[1];
+    address = hexaConverter.decimalToHex(currentLocation);
 
-    if (type == '*' && name.length() == 2) {
-        value = currentLocation;
+    if (name[0] != '=') {     // if literal is an =*
+        value = hexaConverter.decimalToHex( hexaConverter.hexToDecimal(name) + instructionSize);
+        this->name = "=*";
         space = 3;
     }
     else {

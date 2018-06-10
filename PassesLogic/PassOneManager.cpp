@@ -130,7 +130,12 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
 
         if (command.operands.front()[0] == '=') {     //literal operand
             if (literalTable.find(command.operands.front()) == literalTable.end()) {
-                literalsBuffer.push_back(make_pair(command.operands.front(), count));
+                if (command.operands.front() == "=*") {
+                    literalsBuffer.push_back(make_pair(getCurrentLocation(), command.getNeededSpace()));
+                }
+                else {
+                    literalsBuffer.push_back(make_pair(command.operands.front(), count));
+                }
             }
         }
         if(command.label.compare("") != 0){
@@ -236,7 +241,7 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
 
 
 
-
+        int asdf = command.getNeededSpace();
         locationCounter += command.getNeededSpace();
         programLength += command.getNeededSpace();
         it++;
@@ -313,9 +318,15 @@ vector<ErrorMsg> PassOneManager::dumpLiterals(vector<pair<string, int>> literals
         string literalName = it->first;
         int count = it->second;
 
-        if (literalTable.find(literalName) == literalTable.end()) {
+        if (literalName[0] != '=') { // if it is an =* literal, the name will be its caller instruction address
+            Literal literal = Literal(literalName, locationCounter, count);
+            literalTable.insert(make_pair(literalName, literal));
+            locationCounter += literal.getSpace();
+            programLength += literal.getSpace();
+        }
+        else if (literalTable.find(literalName) == literalTable.end()) {
             try {
-                Literal literal = Literal(literalName, getCurrentLocation());
+                Literal literal = Literal(literalName, locationCounter, 0);
                 literalTable.insert(make_pair(literalName, literal));
                 locationCounter += literal.getSpace();
                 programLength += literal.getSpace();
