@@ -38,6 +38,8 @@ int Command::getNeededSpace() {
         return 0;
     } else if(mnemonic.compare("EXTREF") == 0) {
         return 0;
+    } else if(mnemonic.compare("LTORG") == 0) {
+        return 0;
     } else if (opTable.isInTable(mnemonic)) {
         return opTable.getInfo(mnemonic).format;
     }

@@ -16,7 +16,7 @@
 using namespace std;
 
 
-
+int baseCounter;
 string nextInstructAddress;
 string currentInstructionAddress;
 map<string, labelInfo> symblTable;
@@ -100,9 +100,10 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
         registerCode = registerCode | getRegisterNumber(operands[1]);
         uncompletedObjCode = uncompletedObjCode << 8;
     } else {
-        uncompletedObjCode = uncompletedObjCode << 4;
+        registerCode = registerCode << 4;
+        uncompletedObjCode = uncompletedObjCode << 8;
     }
-    uncompletedObjCode = uncompletedObjCode | registerCode;
+    uncompletedObjCode = uncompletedObjCode | (registerCode);
     return hexConverter.decimalToHex(uncompletedObjCode);
 }
 
@@ -128,6 +129,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             address = operandHolder.value;
         } else if (operands[0][0] != '#' && operands[0][0] != '@') {
             vector<string> operandSplited;
+            operands[0].erase(std::remove(operands[0].begin(), operands[0].end(), ' '), operands[0].end());
             if(operands[0].find(",X") != string::npos) {
                 operandSplited = splitString(operands[0]);
                 if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
@@ -142,6 +144,8 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 
             if(operands[0] == "*"){
                 address = currentInstructionAddress;
+            } else if(operands[0] == "=*"){
+                address = literalTable.at(currentInstructionAddress).getAddress();
             } else if(symblTable.find(operandSplited[0]) != symblTable.end()) {
                 label = symblTable.at(operandSplited[0]);
                 address = label.address;
@@ -160,25 +164,10 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
 
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
                 displacement = stoi(operands[0].substr(1, operands[0].length() - 1));
-                if(baseAvailable){
-                    if(displacement >= -2048 && displacement < 2048){
-                        isPC = true;
-                    } else if(displacement >= 2048 && displacement < 4096){
-                        isPC = false;
-                    } else{
-                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-                        __throw_runtime_error("Displacement out of range with base");
-                    }
-
-                } else {
-                    if (displacement < 2048 && displacement >= -2048) {
-                        isPC = true;
-                    } else {
-                        loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range no base");
-                        __throw_runtime_error("Displacement out of range no base");
-                    }
+                if(displacement > 4096){
+                    loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
+                    __throw_runtime_error("Displacement out of range with base");
                 }
-
                 constImmediateOrIndirect = true;
             } else{
                 loggerObjectCode.errorMsg("ObjectCodeCalculation: operand is not in symbol table or Litteral table");
@@ -200,19 +189,20 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
             displacement = results[1];
         }
-        vector<int> nixbpe = getFlagsCombination(operands, 3, isPC, isIndexing); // give me ni separated from xbpe
+        vector<int> nixbpe = getFlagsCombination(operands, 3, isPC, isIndexing,constImmediateOrIndirect); // give me ni separated from xbpe
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-        completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
+        completedObjCode = (completedObjCode << 12) | ((displacement & 4095) );
         string final = "000000" + hexConverter.decimalToHex(completedObjCode);
         return (final).substr(final.length() - 6, final.length() - 1);
     } else {
-        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4F0000"; //return opcode only ex: 1027 RSUB 4F0000 (got it from optable)
     }
 }
 
 string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vector<string> operands) {
     bool isIndexing = false;
     vector<string> operandSplited;
+    operands[0].erase(std::remove(operands[0].begin(), operands[0].end(), ' '), operands[0].end());
     if(operands[0].find(",X") != string::npos) {
         operandSplited = splitString(operands[0]);
         if (operandSplited.size() <= 2 && operandSplited[1] == "X") {
@@ -225,7 +215,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         operandSplited = operands;
     }
 
-    vector<int> nixbpe = getFlagsCombination(operands, 4, false, isIndexing);// give me ni separated from xbpe
+    vector<int> nixbpe = getFlagsCombination(operands, 4, false, isIndexing, false);// give me ni separated from xbpe
     labelInfo label;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     expressionEvaluator.extref_tab = extRef;
@@ -244,8 +234,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             } else if(containsExternalReference(operands[0].substr(1, operands[0].length() - 1),extRef)){
                 address = "00000";
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
-                address = operands[0].substr(1, operands[0].length() - 1);
-                if (stoi(address) > pow(2, 20)) {
+                address = hexConverter.decimalToHex(stoi(operands[0].substr(1, operands[0].length() - 1)));
+                if (stoi(operands[0].substr(1, operands[0].length() - 1)) > pow(2, 20)) {
                     loggerObjectCode.errorMsg("ObjectCodeCalculation: address is bigger than 20 bits");
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
@@ -272,6 +262,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
                 }
             } else if(operands[0] == "*"){
                 address = currentInstructionAddress;
+            } else if(operands[0] == "=*"){
+                address = literalTable.at(currentInstructionAddress).getAddress();
             } else{
                 loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
                 __throw_runtime_error("Invalid operand");
@@ -279,7 +271,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         }
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
-        completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
+        completedObjCode = (completedObjCode << 20) | ((hexConverter.hexToDecimal(address) << 12) >> 12);
         string value = "0000000000000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
@@ -288,11 +280,11 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
     }
 }
 
-vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, int format, bool PCRelative, bool isIndexing) {
+vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, int format, bool PCRelative, bool isIndexing,bool isConst) {
     int ni = 0;
     int xbpe = 0;
-    if (operands.size() == 2) {
-        if (isIndexing || operands[1] == "X") {
+    if (operands[0].find(",X") != string::npos) {
+        if (isIndexing) {
             xbpe = 8;       //indexing
         } else {
             loggerObjectCode.errorMsg("ObjectCodeCalculation: Wrong number of operands");
@@ -315,9 +307,9 @@ vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, 
         } else {
             ni = 3; //11 simple addressing
         }
-        if (PCRelative) {
+        if (PCRelative && !isConst) {
             xbpe = xbpe | 2; //pc relative
-        } else {
+        } else  if(!PCRelative && !isConst){
             xbpe = xbpe | 4; //base relative
         }
 
@@ -380,11 +372,13 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
     if(baseAvailable){
         if(displacement >= -2048 && displacement < 2048){
             isPC = true;
-        } else if(displacement >= 2048 && displacement < 4096){
+        } else {
+            displacement = targetAdd - baseCounter;
+            if(displacement > 4096){
+                loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
+                __throw_runtime_error("Displacement out of range with base");
+            }
             isPC = false;
-        } else{
-            loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-            __throw_runtime_error("Displacement out of range with base");
         }
 
     } else {
@@ -446,7 +440,6 @@ vector<string> ObjectCodeCalculation::splitString(string str) {
     //split operand[0] and check first element in vector bshart el tany X
     //7oty isIndexing else error
     vector<string> returnedVector;
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
     stringstream ss(str);
     string token;
 
@@ -456,4 +449,7 @@ vector<string> ObjectCodeCalculation::splitString(string str) {
     return returnedVector;
 }
 
+void ObjectCodeCalculation::setBaseCounter(int address){
+    baseCounter = address;
+}
 

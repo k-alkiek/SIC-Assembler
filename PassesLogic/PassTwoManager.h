@@ -20,6 +20,9 @@ private:
 //    string convertCToObjCode(string str,PassTwoData data);
     bool noObjCode(string mnemonic);
     vector<string> updateDataVectors(Command cursor,vector<string> data);
+    int getBaseValue(Command cursur, map<string, labelInfo> symbolTable);
+    bool is_number(string s);
+    bool checkBase(string baseOperand, string ldbOperand);
 public:
     PassTwoData  generateObjectCode(PrimaryData primaryData);
 

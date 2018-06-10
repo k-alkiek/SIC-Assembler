@@ -14,9 +14,9 @@ private:
     string value;
     string address;
     unsigned long space;
-    void process(string currentLocation);
+    void process(int currentLocation, int instructionSize);
 public:
-    Literal(string name, string currentLocation);
+    Literal(string name, int currentLocation, int instructionSize);
     string getName();
     string getAddress();
     string getValue();
