@@ -108,8 +108,10 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             break;
         }
         else if (command.mnemonic.compare("ORG") == 0) {
+            ExpressionEvaluator expressionEvaluator = ExpressionEvaluator(symbolTable, hexaConverter);
             try {
-                locationCounter = hexaConverter.hexToDecimal(getOperandValue(command.operands.front()).address);
+                OperandHolder operandHolder = expressionEvaluator.evaluateExpression(command.operands.front(), getCurrentLocation());
+                locationCounter = hexaConverter.hexToDecimal(operandHolder.value);
             } catch (invalid_argument e) {
                 ErrorMsg msg;
                 msg.index = count;
