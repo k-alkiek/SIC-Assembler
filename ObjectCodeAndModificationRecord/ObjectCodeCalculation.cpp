@@ -100,9 +100,10 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
         registerCode = registerCode | getRegisterNumber(operands[1]);
         uncompletedObjCode = uncompletedObjCode << 8;
     } else {
-        uncompletedObjCode = uncompletedObjCode << 4;
+        registerCode = registerCode << 4;
+        uncompletedObjCode = uncompletedObjCode << 8;
     }
-    uncompletedObjCode = uncompletedObjCode | registerCode;
+    uncompletedObjCode = uncompletedObjCode | (registerCode);
     return hexConverter.decimalToHex(uncompletedObjCode);
 }
 
@@ -190,11 +191,11 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
         }
         vector<int> nixbpe = getFlagsCombination(operands, 3, isPC, isIndexing,constImmediateOrIndirect); // give me ni separated from xbpe
         unsigned int completedObjCode = ((uncompletedObjCode | nixbpe[0]) << 4) | nixbpe[1];
-        completedObjCode = (completedObjCode << 12) | ((displacement << 20) >> 20);
+        completedObjCode = (completedObjCode << 12) | ((displacement & 4095) );
         string final = "000000" + hexConverter.decimalToHex(completedObjCode);
         return (final).substr(final.length() - 6, final.length() - 1);
     } else {
-        return "4C0000"; //return opcode only ex: 1027 RSUB 4C0000 (got it from optable)
+        return "4F0000"; //return opcode only ex: 1027 RSUB 4F0000 (got it from optable)
     }
 }
 
@@ -233,8 +234,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
             } else if(containsExternalReference(operands[0].substr(1, operands[0].length() - 1),extRef)){
                 address = "00000";
             } else if(is_number(operands[0].substr(1, operands[0].length() - 1))){
-                address = operands[0].substr(1, operands[0].length() - 1);
-                if (stoi(address) > pow(2, 20)) {
+                address = hexConverter.decimalToHex(stoi(operands[0].substr(1, operands[0].length() - 1)));
+                if (stoi(operands[0].substr(1, operands[0].length() - 1)) > pow(2, 20)) {
                     loggerObjectCode.errorMsg("ObjectCodeCalculation: address is bigger than 20 bits");
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
@@ -270,7 +271,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
         }
         unsigned int completedObjCode = ((((uncompletedObjCode >> 2) << 2) | nixbpe[0]) << 4) |
                                         nixbpe[1]; //deleted first two bits from the right (enta sa7 :D) (i knew it :p)
-        completedObjCode = (completedObjCode << 20) | ((stoi(address) << 12) >> 12);
+        completedObjCode = (completedObjCode << 20) | ((hexConverter.hexToDecimal(address) << 12) >> 12);
         string value = "0000000000000" +  hexConverter.decimalToHex(completedObjCode);
         return value.substr(value.length()-8,value.length()-1);
     } else {
@@ -282,8 +283,8 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
 vector<int> ObjectCodeCalculation::getFlagsCombination(vector<string> operands, int format, bool PCRelative, bool isIndexing,bool isConst) {
     int ni = 0;
     int xbpe = 0;
-    if (operands.size() == 2) {
-        if (isIndexing || operands[1] == "X") {
+    if (operands[0].find(",X") != string::npos) {
+        if (isIndexing) {
             xbpe = 8;       //indexing
         } else {
             loggerObjectCode.errorMsg("ObjectCodeCalculation: Wrong number of operands");
