@@ -27,7 +27,7 @@ private:
 
     string completeObjCodeFormat4(int uncompletedObjCode, vector <string> operands);
 
-    vector<int> getFlagsCombination(vector <string> operands, int format, bool PCRelative, bool isIndexing);
+    vector<int> getFlagsCombination(vector <string> operands, int format, bool PCRelative, bool isIndexing, bool isConst);
 
     vector<int> getSimpleDisplacement(string TA, string progCounter,bool baseAvailable);
 
@@ -39,6 +39,7 @@ private:
     bool containsExternalReference (string expression, vector<string> extReferences);
     vector<string> splitString(string str);
 public:
+    void setBaseCounter(int address);
     string getObjectCode(Command cursor, string nextInstAdd,string currentInstAdd, map<string, labelInfo> symbolTable, map<string,  Literal> litTable,bool isPcFlag,vector<string> externalReference);
 
 };
