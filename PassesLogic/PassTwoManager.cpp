@@ -74,7 +74,9 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                         modificationRecordCalculation.addModificationRecord(cursor, itr, data.definitions, data.references);
                     }
                 }
-                data.textRecord.push_back("");
+                if(cursor.mnemonic != "LTORG") {
+                    data.textRecord.push_back("");
+                }
                 cursor = commands[++itr];
                 continue;
             }
