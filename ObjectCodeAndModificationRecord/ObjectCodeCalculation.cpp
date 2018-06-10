@@ -371,16 +371,13 @@ vector<int> ObjectCodeCalculation::getSimpleDisplacement(string TA, string progC
     if(baseAvailable){
         if(displacement >= -2048 && displacement < 2048){
             isPC = true;
-        } else if(displacement >= 2048){
+        } else {
             displacement = targetAdd - baseCounter;
             if(displacement > 4096){
                 loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
                 __throw_runtime_error("Displacement out of range with base");
             }
             isPC = false;
-        } else{
-            loggerObjectCode.errorMsg("ObjectCodeCalculation: Displacement out of range");
-            __throw_runtime_error("Displacement out of range with base");
         }
 
     } else {
