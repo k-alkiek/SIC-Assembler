@@ -6,6 +6,7 @@
 #include "../Logger/Logger.h"
 #include <cmath>
 #include <sstream>
+#include <algorithm>
 
 //TODO test cases
 /**
@@ -51,9 +52,11 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             } else if(cursor.mnemonic == "NOBASE"){
                 data.baseAvailable = false;
             } else if(cursor.mnemonic == "LTORG"){
+                string temp = "";
                 for(int i = 0; i < data.litrals.size(); i++) {
-                    data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
+                    temp += primaryData.literalTable.at(data.litrals[i]).getValue();
                 }
+                data.textRecord.push_back(temp);
                 data.litrals.clear();
             } else if(cursor.mnemonic == "LDB"){
                 baseValue = getBaseValue(cursor,primaryData.symbolTable);
@@ -61,7 +64,9 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                 isBaseHasValue = true;
             }
             if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
-                data.litrals.push_back(cursor.operands[0]);
+                if(!(std::find(data.litrals.begin(), data.litrals.end(), cursor.operands[0]) != data.litrals.end())) {
+                    data.litrals.push_back(cursor.operands[0]);
+                }
             }
             if (noObjCode(cursor.mnemonic)) {
                 if(cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG"){
@@ -88,9 +93,11 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             exit(0);
         }
     }
+    string temp = "";
     for(int i = 0; i < data.litrals.size(); i++) {
-        data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
+        temp += primaryData.literalTable.at(data.litrals[i]).getValue();
     }
+    data.textRecord.push_back(temp);
     data.litrals.clear();
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
     data.modificationRecords = modificationRecordCalculation.getModificationRecords();
