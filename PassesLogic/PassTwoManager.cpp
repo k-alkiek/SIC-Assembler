@@ -16,6 +16,7 @@
  * test lecture examples
  */
 CommandIdentifier commandIdentifier;
+HexaConverter hexaConverter;
 Logger loggerPassTwo;
 PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ModificationRecordCalculation modificationRecordCalculation;
@@ -28,7 +29,9 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     cursor = commands[0];
     data.nextInstructionAddress = primaryData.startingAddress;
     int itr = 0;
-
+    bool isBaseHasValue = false;
+    int baseValue;
+    string ldbOperand;
     while (cursor.mnemonic != "END") {
         try {
             checkForErrors(cursor,data);
@@ -37,7 +40,14 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             } else if(cursor.mnemonic == "EXTDEF"){
                 data.definitions = updateDataVectors(cursor,data.definitions);
             } else if(cursor.mnemonic == "BASE"){
-                data.baseAvailable = true;
+                if(checkBase(cursor.operands[0],ldbOperand)) {
+                    data.baseAvailable = true;
+                    objectCodeCalculator.setBaseCounter(baseValue);
+                } else{
+                    loggerPassTwo.errorMsg("PassTwoManager: Invalid operand with BASE instruction");
+                    __throw_runtime_error("Invalid operand with BASE instruction");
+                }
+
             } else if(cursor.mnemonic == "NOBASE"){
                 data.baseAvailable = false;
             } else if(cursor.mnemonic == "LTORG"){
@@ -45,13 +55,17 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                     data.textRecord.push_back(primaryData.literalTable.at(data.litrals[i]).getValue());
                 }
                 data.litrals.clear();
+            } else if(cursor.mnemonic == "LDB"){
+                baseValue = getBaseValue(cursor,primaryData.symbolTable);
+                ldbOperand = cursor.operands[0];
+                isBaseHasValue = true;
             }
             if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
                 data.litrals.push_back(cursor.operands[0]);
             }
             if (noObjCode(cursor.mnemonic)) {
                 if(cursor.mnemonic == "EQU" || cursor.mnemonic == "ORG"){
-                    if(cursor.operands[0] == "*"){
+                    if(cursor.operands[0] == "=*"){
                         modificationRecordCalculation.addModificationRecord(cursor, itr, data.definitions, data.references);
                     }
                 }
@@ -95,6 +109,10 @@ void PassTwoManager::checkForErrors(Command cursor,PassTwoData data){
             __throw_runtime_error("Invalid operand");
         }
     }
+    if(cursor.mnemonic.substr(0,1) == "st" && cursor.mnemonic.length() == 3 && cursor.operands[0][0] == '='){
+        loggerPassTwo.errorMsg("PassTwoManager: Cannt store in literal ");
+        __throw_runtime_error("Invalid Cannt store in literal");
+    }
 }
 
 vector<string> PassTwoManager::updateDataVectors(Command cursor,vector<string> data){
@@ -117,6 +135,39 @@ vector<string> PassTwoManager::updateDataVectors(Command cursor,vector<string> d
 bool PassTwoManager::noObjCode(string mnemonic){
     if(mnemonic == "RESB" || mnemonic == "RESW" || mnemonic == "LTORG" || mnemonic == "EXTREF" || mnemonic == "EXTDEF" ||
        mnemonic == "BASE" || mnemonic == "NOBASE" || mnemonic == "EQU" || mnemonic == "ORG" || mnemonic == "CSET" || mnemonic == "START"){
+        return true;
+    }
+    return false;
+}
+
+int PassTwoManager::getBaseValue(Command cursur, map<string, labelInfo> symbolTable){
+    if(cursur.operands[0] == "*"){
+        return hexaConverter.hexToDecimal(cursur.address);
+    } else if(cursur.operands[0][0] == '#'){
+        if(symbolTable.find(cursur.operands[0].substr(1,cursur.operands[0].size()-1)) != symbolTable.end()){
+            return hexaConverter.hexToDecimal((symbolTable.at(cursur.operands[0].substr(1,cursur.operands[0].size()-1)).address));
+        } else if(is_number(cursur.operands[0].substr(1,cursur.operands[0].size()-1))){
+            return stoi(cursur.operands[0].substr(1,cursur.operands[0].size()-1));
+        } else{
+            loggerPassTwo.errorMsg("PassTwoManager: invalid value in base register ");
+            __throw_runtime_error("invalid value in base register ");
+        }
+    } else if(cursur.operands[0][0] == '='){
+        return stoi(cursur.operands[0].substr(3,cursur.operands[0].size()-2));
+    } else{
+        loggerPassTwo.errorMsg("PassTwoManager: invalid value in base register ");
+        __throw_runtime_error("invalid value in base register ");
+    }
+}
+
+bool PassTwoManager::is_number(string s) {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
+bool PassTwoManager::checkBase(string baseOperand, string ldbOperand){
+    if(ldbOperand.find(baseOperand) != string::npos){
         return true;
     }
     return false;

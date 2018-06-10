@@ -100,12 +100,15 @@ void FileWriter::writeToFile(string fileName, vector<PrimaryData> data) {
             }
 
             file << "\n Literals\n";
-            file << "\n\nname            value          address\n";
+            file << "\nname            value          address\n";
             for (map<string, Literal>::const_iterator it = (*dataIterator).literalTable.begin();
                  it != (*dataIterator).literalTable.end(); ++it) {
-
-                file << it->first;
-                tmp = it->first.size();
+                string name = it->first;
+                if (name[0] != '=') {
+                    name = "=* @" + name;
+                }
+                file << name;
+                tmp = name.size();
                 while (tmp < 16) {
                     file << " ";
                     tmp++;
@@ -373,11 +376,27 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         string tmpRecord = "";
         int currentAddress = hexaConverter.hexToDecimal(data[i].startingAddress);
         vector<string>::iterator it = objectCode[i].begin();
+        vector<Command>::iterator comIt = data[i].commands.begin();
+        bool broke = false;
         while (it != objectCode[i].end()) {
             while (it != objectCode[i].end() && ((length + (*it).size()) < LIMIT)) {
                 length += (*it).length();
-                if((*it).length() != 0)
-                    tmpRecord += (*it) +separator;
+                if((*it).length() != 0) {
+                    tmpRecord += (*it) + separator;
+                }
+                if((*comIt).mnemonic == "RESW" || (*comIt).mnemonic == "RESB") {
+                    if(tmpRecord.length() != 0) {
+                        ++comIt;
+                        ++it;
+                        broke = true;
+                        break;
+                    } else {
+                        comIt++;
+                        currentAddress = hexaConverter.hexToDecimal(((*comIt).address));
+                        comIt--;
+                    }
+                }
+                ++comIt;
                 ++it;
             }
             textRecord = "T" +separator;
@@ -389,7 +408,11 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
                 tmp++;
             }
             textRecord += add+separator;
-            currentAddress = currentAddress + length / 2;
+            if(!broke){
+                currentAddress = currentAddress + length / 2;
+            } else {
+                currentAddress = hexaConverter.hexToDecimal((*comIt).address);
+            }
             if (hexaConverter.decimalToHex(length / 2).size() == 1)
                 textRecord += "0";
             textRecord += hexaConverter.decimalToHex(length / 2) +separator+ tmpRecord;
