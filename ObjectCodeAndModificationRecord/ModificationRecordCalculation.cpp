@@ -158,9 +158,9 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             }
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
-    } else if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+    } else if(cursor.operands[0] == "=*") {
 
-        astrickModificationRecord(index,cursor,"03"); //TODO (labib) check if half bytes = "03" is correct
+        astrickModificationRecord(index,cursor,"06");
     }
 }
 
@@ -169,7 +169,7 @@ void ModificationRecordCalculation::astrickModificationRecord(int index, Command
     modRecord.index = index;
     modRecord.labelToBeAdded = progName;
     modRecord.operation = "+";
-    modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address) + 1));
+    modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address)));
     modRecord.halfBytes = halfBytes;
     modificationRecord.push_back(modRecord);
 }
