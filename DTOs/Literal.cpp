@@ -16,7 +16,7 @@ void Literal::process(int currentLocation, int instructionSize) {
     address = hexaConverter.decimalToHex(currentLocation);
 
     if (name[0] != '=') {     // if literal is an =*
-        value = name;
+        value = hexaConverter.decimalToHex( hexaConverter.hexToDecimal(name) + instructionSize);
         while (value.length() < 6) {
             value = "0" + value;
         }
