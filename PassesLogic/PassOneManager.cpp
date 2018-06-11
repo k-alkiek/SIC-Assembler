@@ -112,8 +112,6 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             try {
                 OperandHolder operandHolder = expressionEvaluator.evaluateExpression(command.operands.front(), getCurrentLocation());
                 locationCounter = hexaConverter.hexToDecimal(operandHolder.value);
-
-//                locationCounter = hexaConverter.hexToDecimal(getOperandValue(command.operands.front()).address);
             } catch (invalid_argument e) {
                 ErrorMsg msg;
                 msg.index = count;
