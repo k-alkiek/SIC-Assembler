@@ -135,7 +135,8 @@ string CommandParser::validateLineSyntax(Command line){
             return validateRes(line);
         else if(mnemonic == "BYTE")
             return validateByte(line);
-
+        else if(mnemonic.find("LD") != string::npos)
+            return validateLiteral(line);
     }
 
     return " ";
@@ -351,5 +352,17 @@ string CommandParser::validateStart(Command command) {
     for(int i = 0 ; i < operand.length() ; i++)
         if(!isdigit(operand.at(i)) && !(std::find(hexTab.begin(), hexTab.end(),operand.at(i)) != hexTab.end()))
             return "Not a hexadecimal digit";
+    return " ";
+}
+
+string CommandParser::validateLiteral(Command command) {
+
+    string operand = command.operands[0];
+
+    if(operand.at(0) != '=')
+        return " ";
+
+    if(operand.at(1) != 'W')
+        return "Invalid Literal loaded in register";
     return " ";
 }

@@ -28,6 +28,8 @@ private:
     string validateByte(Command command);
 
     string validateStart(Command command);
+
+    string validateLiteral(Command command);
 };
 
 
