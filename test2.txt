@@ -24,7 +24,7 @@ rdrec 	CLEAR 	x
 	+LDT 	#4096
 rloop 	TD 	input
 	JEQ 	Rloop
-	RD 	input
+	TD 	input
 	COMPR 	a,s
 	JEQ 	exit
 	STCH 	buffer,x

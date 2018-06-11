@@ -135,7 +135,6 @@ string CommandParser::validateLineSyntax(Command line){
             return validateRes(line);
         else if(mnemonic == "BYTE")
             return validateByte(line);
-
     }
 
     return " ";
@@ -353,3 +352,4 @@ string CommandParser::validateStart(Command command) {
             return "Not a hexadecimal digit";
     return " ";
 }
+
