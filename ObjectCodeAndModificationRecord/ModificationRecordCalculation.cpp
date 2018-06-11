@@ -22,9 +22,13 @@ void ModificationRecordCalculation::setPrimaryDataNeeded (string name, map<strin
 bool ModificationRecordCalculation::containsExternalReference (string expression, vector<string> extReferences) {
     for (int i = 0; i < extReferences.size(); i++) {
         if (expression.find(extReferences[i]) != string::npos) {
-            char nextChar = expression.at(expression.find(extReferences[i]) + 1);
-            if(nextChar == '-' || nextChar == '+' || nextChar == '*' || nextChar == '/') {
+            if(expression.find(extReferences[i]) + extReferences[i].size() == expression.size()){
                 return true;
+            } else {
+                char nextChar = expression.at(expression.find(extReferences[i]) + extReferences[i].size());
+                if (nextChar == '-' || nextChar == '+' || nextChar == '*' || nextChar == '/') {
+                    return true;
+                }
             }
         }
     }
