@@ -5,6 +5,7 @@
 #include "ModificationRecordCalculation.h"
 #include "../ConvertersAndEvaluators/ExpressionEvaluator.h"
 #include "../Logger/Logger.h"
+#include "../DTOs/Literal.h"
 
 Logger loggerModRec;
 string progName;
@@ -111,7 +112,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
         //add * case here in format 4
-        if(cursor.operands[0] == "=*"|| cursor.operands[0] == "*") {
+        if(cursor.operands[0] == "*") {
             astrickModificationRecord(index,cursor,"05");
         }
         //dosent have ext ref
@@ -143,7 +144,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
                  && (cursor.operands[i] == "=*"|| cursor.operands[i] == "*"))
                 || (isExpression(cursor.operands[i])
                     &&!containsExternalReference(cursor.operands[0], references)
-                    && (symTab.at(cursor.label)).type != "relative")) { //TODO (labib) dih el mafroud Relative bei R capital?
+                    && (symTab.at(cursor.label)).type != "Relative")) {
                 ModificationRecord modRecord;
                 modRecord.index = index;
                 modRecord.labelToBeAdded = progName;
@@ -158,9 +159,6 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             }
             address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(address) + 3));
         }
-    } else if(cursor.operands[0] == "=*") {
-
-        astrickModificationRecord(index,cursor,"06");
     }
 }
 
@@ -172,6 +170,18 @@ void ModificationRecordCalculation::astrickModificationRecord(int index, Command
     modRecord.address = hexConvertor.decimalToHex((hexConvertor.hexToDecimal(cursor.address)));
     modRecord.halfBytes = halfBytes;
     modificationRecord.push_back(modRecord);
+}
+
+void ModificationRecordCalculation::astrickLiteralModificationRecord(vector<string> astrickAddresses, string halfBytes,
+                                                                     map<string, Literal> literalTable) {
+    for(int i = 0; i < astrickAddresses.size(); i++) {
+        ModificationRecord modRecord;
+        modRecord.labelToBeAdded = progName;
+        modRecord.operation = "+";
+        modRecord.address = literalTable.at(astrickAddresses[i]).getAddress();
+        modRecord.halfBytes = halfBytes;
+        modificationRecord.push_back(modRecord);
+    }
 }
 
 int ModificationRecordCalculation::checkAddProgName(string expression,vector<string> definitions) {

@@ -53,6 +53,9 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                 data.baseAvailable = false;
             } else if(cursor.mnemonic == "LTORG"){
                 string temp = addLiteral(astrickLiteralsAddresses,data.litrals,primaryData.literalTable);
+                modificationRecordCalculation.astrickLiteralModificationRecord(astrickLiteralsAddresses, "06",
+                                                                               primaryData.literalTable);
+                astrickLiteralsAddresses.clear();
                 data.textRecord.push_back(temp);
                 data.litrals.clear();
             } else if(cursor.mnemonic == "LDB"){
@@ -61,7 +64,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                 isBaseHasValue = true;
             }
             if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
-                if(!(std::find(data.litrals.begin(), data.litrals.end(), cursor.operands[0]) != data.litrals.end()) && cursor.operands[0] == "=*") {
+                if(!(std::find(data.litrals.begin(), data.litrals.end(), cursor.operands[0]) != data.litrals.end()) || cursor.operands[0] == "=*") {
                     data.litrals.push_back(cursor.operands[0]);
                 }
                 if(cursor.operands[0] == "=*"){
@@ -96,6 +99,8 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
         }
     }
     string temp = addLiteral(astrickLiteralsAddresses,data.litrals,primaryData.literalTable);
+    modificationRecordCalculation.astrickLiteralModificationRecord(astrickLiteralsAddresses, "06",
+                                                                   primaryData.literalTable);
     data.textRecord.push_back(temp);
     data.litrals.clear();
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);

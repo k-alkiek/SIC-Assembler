@@ -125,12 +125,13 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
         }
         else if (command.mnemonic.compare("LTORG") == 0){
             vector<ErrorMsg> literalErrorMessages = dumpLiterals(literalsBuffer);
+            literalsBuffer.clear();
             for (auto literalErrorMessage : literalErrorMessages) {
                 newWrongCommands.push_back(literalErrorMessage);
             }
         }
 
-        if (command.operands.front()[0] == '=') {     //literal operand
+        if (command.operands.size() > 0 && command.operands.front()[0] == '=') {     //literal operand
             if (literalTable.find(command.operands.front()) == literalTable.end()) {
                 if (command.operands.front() == "=*") {
                     literalsBuffer.push_back(make_pair(getCurrentLocation(), command.getNeededSpace()));
@@ -241,9 +242,6 @@ PrimaryData PassOneManager::loop(vector<Command> commands, vector<ErrorMsg> wron
             }
         }
 
-
-
-        int asdf = command.getNeededSpace();
         locationCounter += command.getNeededSpace();
         programLength += command.getNeededSpace();
         it++;
