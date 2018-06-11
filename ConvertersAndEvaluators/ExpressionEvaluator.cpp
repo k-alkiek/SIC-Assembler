@@ -28,7 +28,11 @@ OperandHolder ExpressionEvaluator::evaluateExpression(string expression, string 
 
     parse_expression(&labels, &operators, expression);
 
-    return evaluate(&labels, &operators);
+    OperandHolder holder = evaluate(&labels, &operators);
+
+    if(holder.type == 1 || holder.type == 0)
+        return holder;
+    __throw_runtime_error("Invalid Expression");
 }
 
 bool ExpressionEvaluator::isOperator(char c) {
@@ -163,10 +167,10 @@ OperandHolder ExpressionEvaluator::calculate(OperandHolder operand1, OperandHold
 
     if (operation == '+') {
         int type = operand1.type + operand2.type;
-        if (type > 1) {
+        /*if (type > 1) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
-        }
+        }*/
 
         int address = this->converter.hexToDecimal(operand1.value);
         address += this->converter.hexToDecimal(operand2.value);
@@ -174,17 +178,17 @@ OperandHolder ExpressionEvaluator::calculate(OperandHolder operand1, OperandHold
         return OperandHolder(this->converter.decimalToHex(address), type);
     } else if (operation == '-') {
         int type = operand1.type - operand2.type;
-        if (type < 0) {
+        /*if (type < 0) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
         }
-
+*/
         int address = this->converter.hexToDecimal(operand1.value);
         address -= this->converter.hexToDecimal(operand2.value);
 
         return OperandHolder(this->converter.decimalToHex(address), type);
     } else if (operation == '*') {
-        if (operand1.type || operand2.type) {
+        if (operand1.type != 0 || operand2.type != 0) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
         }
@@ -194,7 +198,7 @@ OperandHolder ExpressionEvaluator::calculate(OperandHolder operand1, OperandHold
 
         return OperandHolder(this->converter.decimalToHex(address), 0);
     } else {
-        if (operand1.type || operand2.type) {
+        if (operand1.type != 0 || operand2.type != 0) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
         }

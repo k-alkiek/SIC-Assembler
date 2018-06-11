@@ -223,7 +223,7 @@ void FileWriter::generateObjectCodeFile(string fileName , vector<vector<string>>
         vector<Command>::iterator comIt = data[i].commands.begin();
         bool broke = false;
         while (it != objectCode[i].end()) {
-            while (it != objectCode[i].end() && ((length + (*it).size()) < LIMIT)) {
+            while (it != objectCode[i].end() && ((length + (*it).size()) <= LIMIT)) {
                 length += (*it).length();
                 if((*it).length() != 0) {
                     tmpRecord += (*it);
@@ -397,7 +397,7 @@ void FileWriter::generateObjectCodeFileWithSeparators(string fileName , vector<v
         vector<Command>::iterator comIt = data[i].commands.begin();
         bool broke = false;
         while (it != objectCode[i].end()) {
-            while (it != objectCode[i].end() && ((length + (*it).size()) < LIMIT)) {
+            while (it != objectCode[i].end() && ((length + (*it).size()) <= LIMIT)) {
                 length += (*it).length();
                 if((*it).length() != 0) {
                     tmpRecord += (*it) + separator;
