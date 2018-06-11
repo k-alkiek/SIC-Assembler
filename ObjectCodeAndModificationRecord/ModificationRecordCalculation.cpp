@@ -17,7 +17,7 @@ ExpressionEvaluator expressionEvaluator(symTab, hexConvertor);
 void ModificationRecordCalculation::setPrimaryDataNeeded (string name, map<string, labelInfo> symbolTab) {
     progName = name;
     symTab = symbolTab;
-    expressionEvaluator(symTab, hexConvertor);
+    expressionEvaluator = ExpressionEvaluator(symTab, hexConvertor);
 }
 
 bool ModificationRecordCalculation::containsExternalReference (string expression, vector<string> extReferences) {
