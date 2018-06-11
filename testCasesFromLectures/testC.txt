@@ -1,0 +1,53 @@
+Copy   START 0000
+extdef  buffer,bufend,length
+extref  rdrec,wrrec,sda,ff,gg,hh,jjj,kkkkk,lllll,weweq,sdz,cvb,vfd,xccz,ssa,zxcx,xczc,zxczc
+first STL  Retadr
+cloop +JSUB  RDREC
+LDA length
+COMP #0
+JEQ  Endfil
++JSUB  WRRec
+J Cloop
+endfil LDA  =c'eof'
+STA buffer
+LDA #3
+STA length
++JSUB wrrec
+J @retadr
+retadr RESW 1
+length RESW 1
+ltorg
+buffer RESB 4096
+bufend equ *
+maxlen equ BUFEND-BUFFER
+
+rdrec csect
+extref  buffer,length,bufend
+CLEAR x
+CLEAR a
+CLEAR s
+LDT maxlen
+rloop TD input
+JEQ Rloop
+RD input
+COMPR a,s
+JEQ exit
++STCH buffer,x
+TIXR t
+JLT Rloop
+exit +STX length
+RSUB
+input BYTE x'f1'
+maxlen word bufend-buffer
+wrrec csect
+extref length,buffer
+CLEAR x
+      +LDT length
+wloop      TD =*
+      JEQ wloop
+      +LDCH buffer,x
+      WD =X'05'
+      TIXR t
+      JLT wloop
+   RSUB
+   end
