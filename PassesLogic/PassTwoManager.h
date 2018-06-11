@@ -23,6 +23,7 @@ private:
     int getBaseValue(Command cursur, map<string, labelInfo> symbolTable);
     bool is_number(string s);
     bool checkBase(string baseOperand, string ldbOperand);
+    string addLiteral(vector<string> astrickLiteralsAddresses,vector<string> literals,map<string, Literal> literalTable);
 public:
     PassTwoData  generateObjectCode(PrimaryData primaryData);
 

@@ -24,7 +24,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
     ObjectCodeCalculation objectCodeCalculator;
     PassTwoData data;
     modificationRecordCalculation.setPrimaryDataNeeded(primaryData.commands[0].label, primaryData.symbolTable);
-
+    vector<string> astrickLiteralsAddresses;
     Command cursor;
     vector<Command> commands = primaryData.commands;
     cursor = commands[0];
@@ -52,10 +52,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             } else if(cursor.mnemonic == "NOBASE"){
                 data.baseAvailable = false;
             } else if(cursor.mnemonic == "LTORG"){
-                string temp = "";
-                for(int i = 0; i < data.litrals.size(); i++) {
-                    temp += primaryData.literalTable.at(data.litrals[i]).getValue();
-                }
+                string temp = addLiteral(astrickLiteralsAddresses,data.litrals,primaryData.literalTable);
                 data.textRecord.push_back(temp);
                 data.litrals.clear();
             } else if(cursor.mnemonic == "LDB"){
@@ -64,8 +61,11 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
                 isBaseHasValue = true;
             }
             if(cursor.operands.size() != 0 && cursor.operands[0][0] == '='){
-                if(!(std::find(data.litrals.begin(), data.litrals.end(), cursor.operands[0]) != data.litrals.end())) {
+                if(!(std::find(data.litrals.begin(), data.litrals.end(), cursor.operands[0]) != data.litrals.end()) && cursor.operands[0] == "=*") {
                     data.litrals.push_back(cursor.operands[0]);
+                }
+                if(cursor.operands[0] == "=*"){
+                    astrickLiteralsAddresses.push_back(cursor.address);
                 }
             }
             if (noObjCode(cursor.mnemonic)) {
@@ -95,10 +95,7 @@ PassTwoData PassTwoManager::generateObjectCode(PrimaryData primaryData) {
             exit(0);
         }
     }
-    string temp = "";
-    for(int i = 0; i < data.litrals.size(); i++) {
-        temp += primaryData.literalTable.at(data.litrals[i]).getValue();
-    }
+    string temp = addLiteral(astrickLiteralsAddresses,data.litrals,primaryData.literalTable);
     data.textRecord.push_back(temp);
     data.litrals.clear();
 //    DefRecord = modificationRecordCalculation.setDefRecord(defRecordUnsorted, definitions);
@@ -180,4 +177,17 @@ bool PassTwoManager::checkBase(string baseOperand, string ldbOperand){
         return true;
     }
     return false;
+}
+string PassTwoManager::addLiteral(vector<string> astrickLiteralsAddresses,vector<string> literals,map<string, Literal> literalTable){
+    string temp = "";
+    int counter = 0;
+    for(int i = 0; i < literals.size(); i++) {
+        if(literals[i] != "=*") {
+            temp += literalTable.at(literals[i]).getValue();
+        } else{
+            temp += literalTable.at(astrickLiteralsAddresses[counter]).getValue();
+            counter++;
+        }
+    }
+    return temp;
 }

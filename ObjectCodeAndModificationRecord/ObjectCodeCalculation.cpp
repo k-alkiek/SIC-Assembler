@@ -143,7 +143,7 @@ string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vec
             }
 
             if(operands[0] == "*"){
-                address = currentInstructionAddress;
+                address = nextInstructAddress;
             } else if(operands[0] == "=*"){
                 address = literalTable.at(currentInstructionAddress).getAddress();
             } else if(symblTable.find(operandSplited[0]) != symblTable.end()) {
@@ -240,7 +240,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
                     __throw_runtime_error("address is bigger than 20 bit");
                 }
             } else if(operands[0][1] == '*'){
-                address = currentInstructionAddress;
+                address = nextInstructAddress;
             } else{
                 loggerObjectCode.errorMsg("ObjectCodeCalculation: Invalid operand");
                 __throw_runtime_error("invalid operand");
@@ -261,7 +261,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
                     __throw_runtime_error("address is bigger than 20 bit" );
                 }
             } else if(operands[0] == "*"){
-                address = currentInstructionAddress;
+                address = nextInstructAddress;
             } else if(operands[0] == "=*"){
                 address = literalTable.at(currentInstructionAddress).getAddress();
             } else{
