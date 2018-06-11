@@ -132,9 +132,9 @@ vector<OperandHolder> ExpressionEvaluator::form_operands(vector<string> *labels)
     for (int i = 0; i < labels->size(); i++) {
         if (this->symtable.find((*labels)[i]) == this->symtable.end())
             if (isdigit((*labels)[i][0]))
-                operands.push_back(OperandHolder((*labels)[i], 0));
+                operands.push_back(OperandHolder((*labels)[i], 0, 1));
             else if (std::find(extref_tab.begin(), extref_tab.end(), (*labels)[i]) != this->extref_tab.end())
-                operands.push_back(OperandHolder("0", 0));
+                operands.push_back(OperandHolder("0", 0, 1));
             else {
                 loggerExpressionEval.errorMsg("ExpressionEvaluator: Undefined label");
                 __throw_runtime_error("Undefined label");
@@ -146,7 +146,7 @@ vector<OperandHolder> ExpressionEvaluator::form_operands(vector<string> *labels)
                 type = 1;
             else
                 type = 0;
-            operands.push_back(OperandHolder(label.address, type));
+            operands.push_back(OperandHolder(label.address, type, 1));
         }
 
     }
@@ -172,10 +172,13 @@ OperandHolder ExpressionEvaluator::calculate(OperandHolder operand1, OperandHold
             __throw_runtime_error("Invalid Expression");
         }*/
 
-        int address = this->converter.hexToDecimal(operand1.value);
-        address += this->converter.hexToDecimal(operand2.value);
+        int address = this->converter.hexToDecimal(operand1.value) * operand1.sign;
+        address += this->converter.hexToDecimal(operand2.value) * operand2.sign;
 
-        return OperandHolder(this->converter.decimalToHex(address), type);
+        int sign = 1;
+        if(address < 0)
+            sign = -1;
+        return OperandHolder(this->converter.decimalToHex(sign*address), type,sign);
     } else if (operation == '-') {
         int type = operand1.type - operand2.type;
         /*if (type < 0) {
@@ -183,30 +186,39 @@ OperandHolder ExpressionEvaluator::calculate(OperandHolder operand1, OperandHold
             __throw_runtime_error("Invalid Expression");
         }
 */
-        int address = this->converter.hexToDecimal(operand1.value);
-        address -= this->converter.hexToDecimal(operand2.value);
+        int address = this->converter.hexToDecimal(operand1.value) * operand1.sign;
+        address -= this->converter.hexToDecimal(operand2.value) * operand2.sign;
 
-        return OperandHolder(this->converter.decimalToHex(address), type);
+        int sign = 1;
+        if(address < 0)
+            sign = -1;
+        return OperandHolder(this->converter.decimalToHex(sign*address), type,sign);
     } else if (operation == '*') {
         if (operand1.type != 0 || operand2.type != 0) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
         }
 
-        int address = this->converter.hexToDecimal(operand1.value);
-        address *= this->converter.hexToDecimal(operand2.value);
+        int address = this->converter.hexToDecimal(operand1.value) * operand1.sign;
+        address *= this->converter.hexToDecimal(operand2.value) * operand2.sign;
 
-        return OperandHolder(this->converter.decimalToHex(address), 0);
+        int sign = 1;
+        if(address < 0)
+            sign = -1;
+        return OperandHolder(this->converter.decimalToHex(sign*address), 0,sign);
     } else {
         if (operand1.type != 0 || operand2.type != 0) {
             loggerExpressionEval.errorMsg("ExpressionEvaluator: Invalid Expression");
             __throw_runtime_error("Invalid Expression");
         }
 
-        int address = this->converter.hexToDecimal(operand1.value);
-        address /= this->converter.hexToDecimal(operand2.value);
+        int address = this->converter.hexToDecimal(operand1.value) * operand1.sign;
+        address /= this->converter.hexToDecimal(operand2.value) * operand2.sign;
 
-        return OperandHolder(this->converter.decimalToHex(address), 0);
+        int sign = 1;
+        if(address < 0)
+            sign = -1;
+        return OperandHolder(this->converter.decimalToHex(sign*address), 0,sign);
     }
 
 

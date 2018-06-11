@@ -33,7 +33,7 @@ string ObjectCodeCalculation::getObjectCode(Command cursor, string nextInstAdd, 
     symblTable = symTable;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     expressionEvaluator.extref_tab = externalReference;
-    OperandHolder operandHolder("", 0);
+    OperandHolder operandHolder("", 0, 1);
     nextInstructAddress = nextInstAdd;
     literalTable = litTable;
     extRef = externalReference;
@@ -110,7 +110,7 @@ string ObjectCodeCalculation::completeObjCodeFormat2(int uncompletedObjCode, vec
 string ObjectCodeCalculation::completeObjCodeFormat3(int uncompletedObjCode, vector<string> operands, bool baseAvailable) {
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     expressionEvaluator.extref_tab = extRef;
-    OperandHolder operandHolder("", 0);
+    OperandHolder operandHolder("", 0, 1);
     labelInfo label;
     int displacement = 0;
     bool isPC;
@@ -219,7 +219,7 @@ string ObjectCodeCalculation::completeObjCodeFormat4(int uncompletedObjCode, vec
     labelInfo label;
     ExpressionEvaluator expressionEvaluator(symblTable, hexConverter);
     expressionEvaluator.extref_tab = extRef;
-    OperandHolder operandHolder("", 0);
+    OperandHolder operandHolder("", 0, 1);
     string address;
     if (operands.size() != 0) {
         bool isAnExpression = isExpression(operands[0]);

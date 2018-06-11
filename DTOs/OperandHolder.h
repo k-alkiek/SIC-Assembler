@@ -7,5 +7,6 @@ class OperandHolder {
 public:
     string value;
     int type;
-    OperandHolder(string value,int type);
+    int sign;
+    OperandHolder(string value,int type, int sign);
 };
