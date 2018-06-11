@@ -115,7 +115,7 @@ void ModificationRecordCalculation::evaluateModificationRecordExpression(bool co
 
 void ModificationRecordCalculation::addModificationRecord(Command cursor, int index, vector<string> definitions,
                                            vector<string> references) {
-
+    expressionEvaluator.extref_tab = references;
     checkForErrors(cursor,references);
     if (cursor.mnemonic[0] == '+') {
         //add * case here in format 4
@@ -137,7 +137,7 @@ void ModificationRecordCalculation::addModificationRecord(Command cursor, int in
             //have ext ref
             evaluateModificationRecordExpression(false,index, cursor.operands[0], references, cursor.address, definitions);
         }
-    } else if (cursor.mnemonic == "WORD") { //TODO (Byte) leeh mesh mezawedeen byte?!
+    } else if (cursor.mnemonic == "WORD") {
         /**
          * 1) check if it contains an expression
          * 2) check if it's a valid label
